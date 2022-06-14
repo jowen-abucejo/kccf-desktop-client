@@ -1,0 +1,7 @@
+{
+  "name": "kccf-desktop-client",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
