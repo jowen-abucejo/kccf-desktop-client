@@ -1,0 +1,117 @@
+<ion-grid fixed>
+    <ion-row [formGroup]="basicInfoFormGroup">
+        <ion-col size-lg="6" size="12">
+            <ion-list class="ion-padding-horizontal">
+                <ion-item-group>
+                    <ion-item-divider>
+                        <ion-label>Basic
+                            Information</ion-label>
+                    </ion-item-divider>
+                    <ion-item>
+                        <ion-label position="floating">Last Name</ion-label>
+                        <ion-input type="text" placeholder="Last Name" formControlName="last_name"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">First Name</ion-label>
+                        <ion-input type="text" placeholder="First Name" formControlName="first_name"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">Middle Name</ion-label>
+                        <ion-input type="text" placeholder="Middle name" formControlName="middle_name"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">Name Suffix</ion-label>
+                        <ion-input type="text" placeholder="(e.g. 'JR', 'SR', 'III', 'IV', ...)"
+                            formControlName="name_suffix">
+                        </ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">GENDER</ion-label>
+                        <ion-select interface="popover" placeholder="**Select**" formControlName="sex">
+                            <ion-select-option value="female">FEMALE</ion-select-option>
+                            <ion-select-option value="male">MALE</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">Civil Status</ion-label>
+                        <ion-select interface="popover" placeholder="**Select**" formControlName="civil_status">
+                            <ion-select-option value="single">SINGLE</ion-select-option>
+                            <ion-select-option value="married">MARRIED</ion-select-option>
+                            <ion-select-option value="widowed">WIDOWED</ion-select-option>
+                            <ion-select-option value="separated">SEPARATED</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                    <app-date-picker label="Birth Date" [dateFormControl]="basicInfoFormGroup.controls.birth_date"
+                        date_picker_id="date_picker_basic_info" popover_vertical_offset="-350px">
+                    </app-date-picker>
+                    <ion-item>
+                        <ion-label position="floating">Birth Place</ion-label>
+                        <ion-input type="text" placeholder="Birth Place" label="Birth Date"
+                            formControlName="birth_place"></ion-input>
+                    </ion-item>
+                </ion-item-group>
+            </ion-list>
+        </ion-col>
+        <ion-col size-lg="6" size="12">
+            <ion-list class="ion-padding-horizontal">
+                <ion-item-group formArrayName="address">
+                    <ion-item-divider>
+                        <ion-label>Address</ion-label>
+                    </ion-item-divider>
+                    <ion-item>
+                        <ion-label position="floating">Address Line 1</ion-label>
+                        <ion-input placeholder="Address Line 1" formControlName="line_1"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">Address Line 2</ion-label>
+                        <ion-input placeholder="Address Line 2" formControlName="line_2"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">City</ion-label>
+                        <ion-input placeholder="City" formControlName="city"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">State/Province</ion-label>
+                        <ion-input placeholder="State/Province" formControlName="province"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">Zip Code</ion-label>
+                        <ion-input placeholder="Zip Code" formControlName="zip"></ion-input>
+                    </ion-item>
+                </ion-item-group>
+                <ion-item-group>
+                    <ion-item-divider style="margin-top: 16px;">
+                        <ion-label>Contact Information</ion-label>
+                    </ion-item-divider>
+                    <ion-item>
+                        <ion-label position="floating">Email Address</ion-label>
+                        <ion-input type="email" placeholder="Email Address" formControlName="email"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">10-digit Mobile
+                            Number</ion-label>
+                        <ion-input type="text" placeholder="10-digit Mobile Number" formControlName="contact_number">
+                        </ion-input>
+                    </ion-item>
+                </ion-item-group>
+            </ion-list>
+        </ion-col>
+    </ion-row>
+    <ion-row>
+        <ion-col size="4">
+            <ion-button (click)="slide('previous', false)" fill="solid" color="primary" class="ion-margin-vertical">
+                <ion-icon slot="start" name="arrow-back"></ion-icon>
+                Back
+            </ion-button>
+        </ion-col>
+        <ion-col size="4">
+        </ion-col>
+        <ion-col size="4">
+            <ion-button (click)="slide('next', true)" fill="solid" color="primary" class="ion-margin-vertical"
+                [disabled]="!basicInfoFormGroup.valid">
+                Next
+                <ion-icon slot="end" name="arrow-forward"></ion-icon>
+            </ion-button>
+        </ion-col>
+    </ion-row>
+</ion-grid>

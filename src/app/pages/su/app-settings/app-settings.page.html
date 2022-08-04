@@ -1,0 +1,87 @@
+<ion-header>
+    <ion-toolbar color="warning">
+        <ion-title class="ion-text-center">APP CONFIGURATION</ion-title>
+    </ion-toolbar>
+</ion-header>
+<ion-content slot="fixed" [fullscreen]="true">
+    <ion-grid fixed>
+        <ion-row class="ion-justify-content-center ion-align-items-center">
+            <ion-col size-md="6" size-lg="5" class="ion-align-items-center">
+                <ion-card color="light" class="ion-padding-vertical">
+                    <ion-card-content class="ion-text-center">
+                        <form [formGroup]="apiConfigFormGroup" (ngSubmit)="setApi()">
+                            <ion-icon color="primary" slot="start" name="construct-outline" style="font-size: 4rem">
+                            </ion-icon>
+                            <ion-card-title class="ion-margin-bottom">API SETTINGS</ion-card-title>
+                            <ion-item>
+                                <ion-label position="floating">API URL/Domain</ion-label>
+                                <ion-input type="text" placeholder="Enter API Domain" formControlName="api_domain">
+                                </ion-input>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label position="floating">API Version</ion-label>
+                                <ion-input type="text" placeholder="Enter API Version" formControlName="api_version">
+                                </ion-input>
+                            </ion-item>
+                            <ion-button type="submit" color="primary"
+                                [disabled]="!apiConfigFormGroup.valid || !apiConfigFormGroup.dirty"
+                                class="ion-margin-vertical" expand="block">
+                                Save and Restart
+                            </ion-button>
+                        </form>
+                    </ion-card-content>
+                </ion-card>
+                <br />
+                <ion-card color="light" class="ion-padding-vertical">
+                    <ion-card-content class="ion-text-center">
+                        <form [formGroup]="superUserFormGroup" (ngSubmit)="setSuperUser()">
+                            <ion-icon color="primary" slot="start" name="person-circle-outline" style="font-size: 4rem">
+                            </ion-icon>
+                            <ion-card-title class="ion-margin-bottom">SUPERUSER SETTINGS</ion-card-title>
+                            <ion-item>
+                                <ion-label position="floating">Username</ion-label>
+                                <ion-input type="text" placeholder="Enter username" formControlName="username">
+                                </ion-input>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label position="floating">Password</ion-label>
+                                <ion-input type="password" placeholder="Enter password" formControlName="password">
+                                </ion-input>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label position="floating">Confirm Password</ion-label>
+                                <ion-input type="password" placeholder="Re-enter password"
+                                    formControlName="confirm_password"></ion-input>
+                            </ion-item>
+                            <ion-button type="submit" color="primary"
+                                [disabled]="!superUserFormGroup.valid || !superUserFormGroup.dirty"
+                                class="ion-margin-vertical" expand="block">
+                                Save
+                            </ion-button>
+                        </form>
+                    </ion-card-content>
+                </ion-card>
+
+                <ion-card>
+                    <ion-card-content class="ion-padding-vertical">
+                        <ion-button (click)="resetConfig()" color="danger" class="ion-margin-vertical" expand="block">
+                            <!-- <ion-icon
+								slot="start"
+								name="refresh-outline"
+							></ion-icon> -->
+                            RESET TO DEFAULT
+                        </ion-button>
+                        <ion-button color="warning" class="ion-margin-vertical" expand="block" [routerLink]="['..']"
+                            routerLinkActive="router-link-active" replaceUrl="true" routerDirection="back">
+                            <!-- <ion-icon
+								slot="start"
+								name="arrow-back-outline"
+							></ion-icon> -->
+                            EXIT PAGE
+                        </ion-button>
+                    </ion-card-content>
+                </ion-card>
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+</ion-content>

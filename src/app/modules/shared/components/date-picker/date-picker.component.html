@@ -1,0 +1,13 @@
+<ion-item [id]="date_picker_id" lines="full">
+    <ion-label [position]="label_position" [ngStyle]="{'min-width': label_position=='fixed'?'50%':'100px'}">{{ label }}
+    </ion-label>
+    <ion-input [formControl]="dateFormControl" [placeholder]="placeholder"
+        [ngClass]="{'ion-text-end': label_position=='fixed'}"></ion-input>
+</ion-item>
+<ion-popover alignment="center" [trigger]="date_picker_id" show-backdrop="false"
+    style="--offset-y:{{  popover_vertical_offset }}">
+    <ng-template>
+        <ion-datetime [presentation]="presentation" [formControl]="_birth_date" show-clear-button show-default-buttons>
+        </ion-datetime>
+    </ng-template>
+</ion-popover>

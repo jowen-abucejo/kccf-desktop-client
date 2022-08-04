@@ -1,3 +1,140 @@
 <ion-app>
-  <ion-router-outlet></ion-router-outlet>
+    <ion-split-pane contentId="main-content" when="xl" [disabled]="disabled || router.url === '/login'">
+        <ion-menu [disabled]="!isAuthenticated" side="start" content-id="main-content" type="overlay" menuId="side-menu"
+            class="id-side-menu">
+            <ion-header>
+                <ion-toolbar translucent color="primary">
+                    <ion-menu-toggle menu="side-menu" auto-hide="false">
+                        <ion-item color="primary">
+                            <ion-avatar title="KCCF" style="
+									border: 1px solid
+										var(--ion-color-primary-contrast);
+								">
+                                <img src="../assets/kccf.JPG" />
+                            </ion-avatar>
+                            <ion-title>MENU</ion-title>
+                        </ion-item>
+                    </ion-menu-toggle>
+                    <ion-buttons slot="end">
+                        <ion-button (click)="togglePane()" *ngIf="!disabled" title="Hide Side Menu"
+                            class="ion-hide-xl-down">
+                            <ion-icon name="arrow-back-outline" title="Hide Side Menu"></ion-icon>
+                        </ion-button>
+                        <ion-button (click)="togglePane()" *ngIf="disabled" title="Pin Side Menu"
+                            class="ion-hide-xl-down">
+                            <ion-icon name="pin-outline"></ion-icon>
+                        </ion-button>
+                    </ion-buttons>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content color="light">
+                <ion-list color="light">
+                    <ion-item-group [hidden]="!isAuthenticated">
+                        <ion-item-divider>
+                            <ion-label>Manage Records</ion-label>
+                        </ion-item-divider>
+                        <ion-menu-toggle menu="side-menu" auto-hide="false" [hidden]="!isAuthenticated">
+                            <ion-item [routerLink]="['/home']" routerLinkActive="router-link-active" replaceUrl="true">
+                                <ion-icon name="bar-chart-outline" slot="start"></ion-icon>
+                                <ion-label>DASHBOARD</ion-label>
+                            </ion-item>
+                        </ion-menu-toggle>
+                        <ion-menu-toggle menu="side-menu" auto-hide="false" [hidden]="!isAuthenticated">
+                            <ion-item [routerLink]="['/students']" routerLinkActive="router-link-active">
+                                <ion-icon name="list-outline" slot="start"></ion-icon>
+                                <ion-label>STUDENTS</ion-label>
+                            </ion-item>
+                        </ion-menu-toggle>
+                        <ion-menu-toggle menu="side-menu" auto-hide="false" [hidden]="!isAuthenticated">
+                            <ion-item [routerLink]="['/school-settings']" routerLinkActive="router-link-active">
+                                <ion-icon name="settings-outline" slot="start"></ion-icon>
+                                <ion-label>SCHOOL SETTINGS</ion-label>
+                            </ion-item>
+                        </ion-menu-toggle>
+                        <!-- <ion-menu-toggle
+							menu="side-menu"
+							auto-hide="false"
+							[hidden]="!isTreasury"
+							><ion-item
+								[routerLink]="['/payments']"
+								routerLinkActive="router-link-active"
+							>
+								<ion-icon
+									name="scan-outline"
+									slot="start"
+								></ion-icon>
+								<ion-label>Payments</ion-label>
+							</ion-item></ion-menu-toggle
+						>
+						<ion-menu-toggle
+							menu="side-menu"
+							auto-hide="false"
+							[hidden]="!isAdmin"
+							><ion-item
+								[routerLink]="['/users']"
+								routerLinkActive="router-link-active"
+							>
+								<ion-icon
+									name="people-outline"
+									slot="start"
+								></ion-icon>
+								<ion-label>User Accounts</ion-label>
+							</ion-item></ion-menu-toggle
+						> -->
+                    </ion-item-group>
+                    <!-- <ion-item-group [hidden]="!isAdmin">
+						<ion-item-divider>
+							<ion-label>Advance Settings</ion-label>
+						</ion-item-divider>
+
+						<ion-menu-toggle menu="side-menu" auto-hide="false"
+							><ion-item
+								[routerLink]="['/ticket-inputs']"
+								routerLinkActive="router-link-active"
+							>
+								<ion-icon
+									name="options-outline"
+									slot="start"
+								></ion-icon>
+								<ion-label>Ticket Inputs</ion-label>
+							</ion-item></ion-menu-toggle
+						>
+						<ion-menu-toggle menu="side-menu" auto-hide="false"
+							><ion-item
+								[routerLink]="['/activity-logs']"
+								routerLinkActive="router-link-active"
+							>
+								<ion-icon
+									name="list-outline"
+									slot="start"
+								></ion-icon>
+								<ion-label>Activity Logs</ion-label>
+							</ion-item></ion-menu-toggle
+						>
+					</ion-item-group> -->
+                    <ion-item-group>
+                        <ion-item-divider>
+                            <ion-label>My Account</ion-label>
+                        </ion-item-divider>
+                        <ion-menu-toggle menu="side-menu" auto-hide="false">
+                            <ion-item [routerLink]="['/account-settings']" routerLinkActive="router-link-active">
+                                <ion-icon name="settings-outline" slot="start"></ion-icon>
+                                <ion-label>Account Settings</ion-label>
+                            </ion-item>
+                        </ion-menu-toggle>
+                        <ion-menu-toggle menu="side-menu" auto-hide="false">
+                            <ion-item button (click)="logout()">
+                                <ion-icon name="log-out-outline" slot="start"></ion-icon>
+                                <ion-label>Logout</ion-label>
+                            </ion-item>
+                        </ion-menu-toggle>
+                    </ion-item-group>
+                </ion-list>
+            </ion-content>
+            <ion-footer>
+                <app-custom-footer></app-custom-footer>
+            </ion-footer>
+        </ion-menu>
+        <ion-router-outlet id="main-content"></ion-router-outlet>
+    </ion-split-pane>
 </ion-app>

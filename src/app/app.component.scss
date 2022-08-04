@@ -1,0 +1,24 @@
+ion-item.router-link-active {
+	font-weight: bold;
+	--background: var(--ion-color-warning);
+	color: var(--ion-color-warning-contrast);
+	--border-style: none;
+}
+.router-link-active ion-icon {
+	color: var(--ion-color-warning-contrast);
+}
+
+// .router-link-active:: {
+// 	color: var(--ion-color-primary-contrast);
+// }
+
+ion-split-pane {
+	--side-min-width: 250px;
+	--side-max-width: 250px;
+	--border: 2px solid var(--ion-color-tertiary);
+}
+
+ion-menu.id-side-menu {
+	--min-width: 250px;
+	--max-width: 250px;
+}

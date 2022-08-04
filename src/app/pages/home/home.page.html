@@ -1,0 +1,43 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-menu-button></ion-menu-button>
+        </ion-buttons>
+        <ion-title>DASHBOARD</ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content scrollY="false" class="ion-padding">
+    <!-- <app-table-export-menu
+          [menu_id]="export_menu_id"
+          [content_id]="export_content_id"
+          (fetchPDFHeader)="updatePDFHeaderTemplate($event)"
+          (fetchExportSetup)="updateExportSetup($event)"
+        ></app-table-export-menu> -->
+    <ion-content [id]="export_content_id" scrollX="true" #tableContent>
+        <!-- <div
+			style="
+				width: 100%;
+				height: 100%;
+				display: flex;
+				flex-direction: column;
+			"
+			class="ion-align-items-center ion-justify-content-center"
+			*ngIf="!isTicketsLoaded"
+		>
+			<ion-spinner
+				name="bubbles"
+				color="primary"
+				class="ion-align-self-center"
+			></ion-spinner>
+			<span class="ion-padding-top">Please wait...</span>
+		</div> -->
+        <table *ngIf="!isTicketsLoaded" datatable [dtOptions]="dtOptions"
+            class="table table-hover table-striped table-bordered" style="width: 100%"></table>
+        <ion-infinite-scroll threshold="2%" (ionInfinite)="loadData($event)"
+            *ngIf="isTicketsLoaded && !isDateFilterApplied">
+            <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Loading more data...">
+            </ion-infinite-scroll-content>
+        </ion-infinite-scroll>
+    </ion-content>
+</ion-content>

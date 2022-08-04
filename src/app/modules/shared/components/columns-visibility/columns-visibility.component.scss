@@ -1,0 +1,12 @@
+ion-list {
+	max-height: 25vh;
+	overflow-y: scroll;
+}
+ion-toggle {
+	height: 0.9rem;
+	--handle-height: 1.7rem;
+}
+
+ion-label {
+	white-space: pre-line;
+}

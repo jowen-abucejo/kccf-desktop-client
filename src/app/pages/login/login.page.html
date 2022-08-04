@@ -1,0 +1,69 @@
+<ion-content slot="fixed" [fullscreen]="true" color="light">
+    <ion-grid fixed>
+        <ion-row class="ion-align-items-center ion-justify-content-center">
+            <ion-col size-md="6" size-lg="5">
+                <h3 class="ion-text-center">KCCF COLLEGE SYSTEM</h3>
+                <h5 class="ion-text-center">
+                    <i>Kurios Christian Church Foundation</i>
+                </h5>
+                <ion-card class="ion-align-self-center">
+                    <ion-card-header color="primary">
+                        <ion-card-subtitle>Login to your account</ion-card-subtitle>
+                    </ion-card-header>
+                    <ion-card-content>
+                        <form [formGroup]="loginFormGroup" (ngSubmit)="login()">
+                            <ion-item class="ion-margin-top">
+                                <ion-label position="floating" color="primary">Email Address</ion-label>
+                                <ion-input type="text" placeholder="Enter email address" formControlName="unameCtrl">
+                                </ion-input>
+                            </ion-item>
+                            <div class="ion-padding-horizontal" *ngIf="loginFormGroup.controls.unameCtrl.invalid">
+                                <p>
+                                    <ion-note>*email address must be verified.
+                                    </ion-note>
+                                </p>
+                            </div>
+                            <ion-item>
+                                <ion-label position="floating" color="primary">Password</ion-label>
+                                <ion-input type="Password" placeholder="Enter Password" formControlName="passCtrl">
+                                </ion-input>
+                            </ion-item>
+                            <div class="ion-margin-horizontal" *ngIf="loginFormGroup.controls.passCtrl.invalid">
+                                <p>
+                                    <ion-note>Password should ...</ion-note>
+                                </p>
+                                <p>
+                                    <ion-note>* contain at least 1 lower case.
+                                    </ion-note>
+                                </p>
+                                <p>
+                                    <ion-note>* contain at least 1 upper case.
+                                    </ion-note>
+                                </p>
+                                <p>
+                                    <ion-note>* contain at least 1 number.
+                                    </ion-note>
+                                </p>
+                                <p>
+                                    <ion-note>* contain at least 1 of any special
+                                        characters !@#$%^&*.
+                                    </ion-note>
+                                </p>
+                                <p>
+                                    <ion-note>* at least 8 character long</ion-note>
+                                </p>
+                            </div>
+                            <br />
+                            <ion-button type="submit" expand="block" fill="solid" color="primary"
+                                class="ion-margin-vertical" [disabled]="!loginFormGroup.valid">
+                                Login
+                            </ion-button>
+                        </form>
+                    </ion-card-content>
+                </ion-card>
+                <br /><br />
+                <app-custom-footer></app-custom-footer>
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+</ion-content>

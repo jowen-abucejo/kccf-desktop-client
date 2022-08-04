@@ -1,0 +1,137 @@
+<ion-grid fixed>
+    <ion-row [formGroup]="familyInfoFormGroup">
+        <ion-col size-lg="6" size="12">
+            <ion-list>
+                <ion-item-group formArrayName="other_info">
+                    <ion-item-divider>
+                        <ion-label>Other Info</ion-label>
+                    </ion-item-divider>
+
+                    <ion-item>
+                        <ion-label position="floating">Parent's Annual Income</ion-label>
+                        <ion-input type="number" min="0.00" step="0.01" placeholder="Parent's Annual Income"
+                            formControlName="parent_annual_income"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">Parent's Marital Status</ion-label>
+                        <ion-select value="married" placeholder="**Select**" formControlName="parent_marital_status"
+                            interface="popover">
+                            <ion-select-option value="married">MARRIED</ion-select-option>
+                            <ion-select-option value="live-in">LIVE-IN</ion-select-option>
+                            <ion-select-option value="separated">SEPARATED</ion-select-option>
+                            <ion-select-option value="annulled">ANNULLED</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-item-group>
+
+            </ion-list>
+        </ion-col>
+        <ion-col size-lg="6" size="12">
+            <ion-list formGroupName="religion_info">
+                <ion-item-group>
+                    <ion-item-divider>
+                        <ion-label>Religious Information</ion-label>
+                    </ion-item-divider>
+
+                    <ion-item>
+                        <ion-label position="floating">Religion</ion-label>
+                        <ion-input type="text" placeholder="Religion" formControlName="religion"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">Church Name</ion-label>
+                        <ion-input type="text" placeholder="Church Name" formControlName="church_name"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">Church Address</ion-label>
+                        <ion-input type="text" placeholder="Church Address" formControlName="church_address">
+                        </ion-input>
+                    </ion-item>
+                </ion-item-group>
+            </ion-list>
+        </ion-col>
+        <ion-col size="12">
+            <ion-row formArrayName="siblings">
+                <ion-col size="12">
+                    <ion-item-divider>
+                        <ion-label>Siblings</ion-label>
+                    </ion-item-divider>
+                </ion-col>
+                <ion-col size="12" *ngFor="let sibling of familyInfoFormGroup.controls.siblings.controls; index as i"
+                    style="border-bottom: 1px solid var(--ion-color-primary);">
+                    <ion-row [formGroup]="sibling">
+                        <!-- <ion-col size-lg="1" size="1">
+                            <ion-button (click)="addSiblingField(true, i)" fill="outline" color="danger" size="small">
+                                <ion-icon slot="icon-only" name="close"></ion-icon>
+                            </ion-button>
+                        </ion-col> -->
+
+                        <ion-col size-lg="4" size="12">
+                            <ion-item>
+                                <ion-label position="floating">First Name</ion-label>
+                                <ion-input type="text" placeholder="First Name" formControlName="first_name">
+                                </ion-input>
+                                <ion-buttons slot="start" style="margin-top: 6px;">
+                                    <ion-button (click)="addSiblingField(true, i)" fill="outline" color="danger"
+                                        size="small">
+                                        <ion-icon slot="icon-only" name="close"></ion-icon>
+                                    </ion-button>
+                                </ion-buttons>
+                            </ion-item>
+                        </ion-col>
+                        <ion-col size-lg="4" size="12">
+                            <ion-item>
+                                <ion-label position="floating">Last Name</ion-label>
+                                <ion-input type="text" placeholder="Last Name" formControlName="last_name"></ion-input>
+                            </ion-item>
+                        </ion-col>
+                        <ion-col size-lg="3" size="12">
+                            <ion-item>
+                                <ion-label position="floating">Middle Name</ion-label>
+                                <ion-input type="text" placeholder="Middle Name" formControlName="middle_name">
+                                </ion-input>
+                            </ion-item>
+                        </ion-col>
+                        <ion-col size-lg="4" size="12">
+                            <ion-item>
+                                <ion-label position="floating">Name Suffix</ion-label>
+                                <ion-input type="text" placeholder="(e.g. 'JR', 'SR', 'III', 'IV', ...)"
+                                    formControlName="name_suffix"></ion-input>
+                            </ion-item>
+                        </ion-col>
+                        <ion-col size-lg="4" size="12">
+                            <app-date-picker [date_picker_id]="'sibling_date_picker_'+i"
+                                [dateFormControl]="sibling.controls.birth_date" label="Birth Date"
+                                popover_vertical_offset="-350px">
+                            </app-date-picker>
+                        </ion-col>
+                    </ion-row>
+                </ion-col>
+            </ion-row>
+            <ion-row>
+                <ion-col size="12" class="ion-justify-content-end">
+                    <ion-button (click)="addSiblingField()" fill="outline">
+                        <ion-icon slot="start" name="add"></ion-icon>
+                        Add New Fields
+                    </ion-button>
+                </ion-col>
+            </ion-row>
+        </ion-col>
+    </ion-row>
+    <ion-row>
+        <ion-col size="4">
+            <ion-button (click)="slide('previous')" fill="solid" color="primary" class="ion-margin-vertical">
+                <ion-icon slot="start" name="arrow-back"></ion-icon>
+                Back
+            </ion-button>
+        </ion-col>
+        <ion-col size="4">
+        </ion-col>
+        <ion-col size="4">
+            <ion-button (click)="submitForm()" fill="solid" color="primary" class="ion-margin-vertical"
+                [disabled]="!familyInfoFormGroup.valid">
+                <ion-icon slot="end" name="arrow-forward"></ion-icon>
+                REGISTER STUDENT
+            </ion-button>
+        </ion-col>
+    </ion-row>
+</ion-grid>

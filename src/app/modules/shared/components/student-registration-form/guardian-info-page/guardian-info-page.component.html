@@ -1,0 +1,133 @@
+<ion-grid fixed>
+    <ion-row [formGroup]="guardianInfoFormGroup">
+        <ion-col size-lg="6" size="12">
+            <ion-list class="ion-padding-horizontal">
+                <ion-item-group>
+                    <ion-item-divider>
+                        <ion-label>{{ targets[target] }}'s Information</ion-label>
+                    </ion-item-divider>
+                    <ion-radio-group *ngIf="target===2" formControlName="relationship"
+                        (ionChange)="toggleGuardianChange($event)">
+                        <ion-item style="margin-top: 6px;"
+                            [disabled]="guardianInfoFormGroup.parent.controls.mother_info.controls.is_deceased.value">
+                            <ion-label>Set MOTHER as Guardian</ion-label>
+                            <ion-radio value="mother" slot="start"></ion-radio>
+                        </ion-item>
+
+                        <ion-item style="margin-top: 7px;"
+                            [disabled]="guardianInfoFormGroup.parent.controls.father_info.controls.is_deceased.value">
+                            <ion-label>Set FATHER as Guardian</ion-label>
+                            <ion-radio value="father" slot="start"></ion-radio>
+                        </ion-item>
+
+                        <ion-item style="margin-top: 7px;">
+                            <ion-label>Others</ion-label>
+                            <ion-radio value="other" slot="start"></ion-radio>
+                        </ion-item>
+                    </ion-radio-group>
+                    <ion-item *ngIf="target!==2">
+                        <ion-label>{{ targets[target] }} is deceased?</ion-label>
+                        <ion-checkbox slot="start" formControlName="is_deceased"
+                            (ionChange)="toggleDeceasedAttribute($event)"></ion-checkbox>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">{{ targets[target] }}'s Last Name</ion-label>
+                        <ion-input type="text" placeholder="{{ targets[target] }}'s Last Name"
+                            formControlName="last_name"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">{{ targets[target] }}'s First Name</ion-label>
+                        <ion-input type="text" placeholder="{{ targets[target] }}'s First Name"
+                            formControlName="first_name"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">{{ targets[target] }}'s Middle Name</ion-label>
+                        <ion-input type="text" placeholder="{{ targets[target] }}'s Middle name"
+                            placeholder="Middle Name" formControlName="middle_name">
+                        </ion-input>
+                    </ion-item>
+                    <ion-item *ngIf="target!==0">
+                        <ion-label position="floating">Name Suffix</ion-label>
+                        <ion-input type="text" placeholder="(e.g. 'JR', 'SR', 'III', 'IV', ...)"
+                            formControlName="name_suffix">
+                        </ion-input>
+                    </ion-item>
+                    <app-date-picker [date_picker_id]="'date_picker_'+target" [label]="targets[target]+'\'s Birth Date'"
+                        [dateFormControl]="guardianInfoFormGroup.controls.birth_date" popover_vertical_offset="-350px">
+                    </app-date-picker>
+                    <ion-item>
+                        <ion-label position="floating">Occupation</ion-label>
+                        <ion-input type="text" placeholder="Occupation" formControlName="occupation"></ion-input>
+                    </ion-item>
+                </ion-item-group>
+            </ion-list>
+        </ion-col>
+        <ion-col size-lg="6" size="12">
+            <ion-list class="ion-padding-horizontal">
+                <ion-item-group formArrayName="address">
+                    <ion-item-divider>
+                        <ion-label>Address</ion-label>
+                    </ion-item-divider>
+                    <ion-item>
+                        <ion-label>Same Address of Student?</ion-label>
+                        <ion-checkbox slot="start" [formControl]="guardianInfoFormGroup.controls.same_address"
+                            (ionChange)="toggleSameAddressAttribute($event)"></ion-checkbox>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">Address Line 1</ion-label>
+                        <ion-input placeholder="Address Line 1" formControlName="line_1"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">Address Line 2</ion-label>
+                        <ion-input placeholder="Address Line 2" formControlName="line_2"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">City</ion-label>
+                        <ion-input placeholder="City" formControlName="city"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">State/Province</ion-label>
+                        <ion-input placeholder="State/Province" formControlName="province"></ion-input>
+
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">Zip Code</ion-label>
+                        <ion-input placeholder="Zip Code" formControlName="zip"></ion-input>
+                    </ion-item>
+                </ion-item-group>
+                <ion-item-group>
+                    <ion-item-divider style="margin-top: 16px;">
+                        <ion-label>Contact Information</ion-label>
+                    </ion-item-divider>
+                    <ion-item>
+                        <ion-label position="floating">Email Address</ion-label>
+                        <ion-input type="email" placeholder="Email Address" formControlName="email"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">10-digit Mobile
+                            Number</ion-label>
+                        <ion-input type="text" placeholder="10-digit Mobile Number" formControlName="contact_number">
+                        </ion-input>
+                    </ion-item>
+                </ion-item-group>
+            </ion-list>
+        </ion-col>
+    </ion-row>
+    <ion-row>
+        <ion-col size="4">
+            <ion-button (click)="slide('previous')" fill="solid" color="primary" class="ion-margin-vertical">
+                <ion-icon slot="start" name="arrow-back"></ion-icon>
+                Back
+            </ion-button>
+        </ion-col>
+        <ion-col size="4">
+        </ion-col>
+        <ion-col size="4">
+            <ion-button (click)="slide()" fill="solid" color="primary" class="ion-margin-vertical"
+                [disabled]="!guardianInfoFormGroup.valid && guardianInfoFormGroup.enabled">
+                <ion-icon slot="end" name="arrow-forward"></ion-icon>
+                Next
+            </ion-button>
+        </ion-col>
+    </ion-row>
+</ion-grid>
