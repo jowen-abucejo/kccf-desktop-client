@@ -3,18 +3,17 @@
         <ion-buttons slot="start">
             <ion-menu-button></ion-menu-button>
         </ion-buttons>
-        <ion-title>STUDENTS</ion-title>
-        <ion-searchbar placeholder="Search by student id, first name, last name or course" animated="true"
-            slot="secondary" color="light" (keyup.enter)="filterStudents()" [(ngModel)]="table_data_status.search"
-            debounce="0" [disabled]="isSearching">
-        </ion-searchbar>
+        <ion-title>SUBJECTS</ion-title>
+        <ion-searchbar placeholder="Search by subject code or description" animated="true" slot="secondary"
+            color="light" (keyup.enter)="filterSubjects()" [(ngModel)]="table_data_status.search" debounce="0"
+            [disabled]="isSearching"></ion-searchbar>
     </ion-toolbar>
 </ion-header>
 <ion-header>
     <ion-toolbar>
-        <ion-segment [(ngModel)]="filters.student_status" style="max-width: 70%" (ionChange)="filterStudents()">
+        <ion-segment [(ngModel)]="filters.subject_status" style="max-width: 70%" (ionChange)="filterSubjects()">
             <ion-segment-button value="ALL" layout="icon-start">
-                <ion-label>ALL STUDENTS</ion-label>
+                <ion-label>ALL SUBJECTS</ion-label>
                 <ion-icon name="list-outline"></ion-icon>
             </ion-segment-button>
             <ion-segment-button value="ACTIVE" layout="icon-start">
@@ -27,10 +26,10 @@
             </ion-segment-button>
         </ion-segment>
         <ion-buttons slot="end" style="margin-right: 65px">
-            <ion-button id="open-student-registration" expand="block" color="primary" fill="outline"
-                (click)="showRegistrationForm()" [disabled]="school_settings.length==0">
+            <ion-button id="open-program-registration" expand="block" color="primary" fill="outline"
+                (click)="showSubjectForm()">
                 <ion-icon name="create-outline" slot="start"></ion-icon>
-                Register Student
+                New Subject
             </ion-button>
         </ion-buttons>
     </ion-toolbar>
@@ -61,7 +60,7 @@
                 mode="ios" class="custom-popover">
                 >
                 <app-row-filter *ngIf="categories.length > 0" [categories]="categories" [active_filters]="filters"
-                    (apply_new_filter)="filterStudents($event)">
+                    (apply_new_filter)="filterSubjects($event)">
                 </app-row-filter>
             </ion-popover>
             <ion-fab-button title="Export Records" [id]="table_name+'_export'" (click)="showExportMenu($event)">

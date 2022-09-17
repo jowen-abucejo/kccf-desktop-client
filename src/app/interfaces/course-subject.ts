@@ -1,6 +1,4 @@
-import { EducationLevel } from "./education-level";
-
-export interface Course {
+export interface CourseSubject {
 	code: string;
 	comments: string | null;
 	created_at: string;
@@ -9,8 +7,15 @@ export interface Course {
 	deleted_by: number | null;
 	description: string;
 	id: number;
-	program_level_id: number;
-	program_level?: EducationLevel;
+	lab_units: number;
+	lec_units: number;
+	offer_subjects_count?: number;
+	pivot?: {
+		level_id;
+		program_id: number;
+		subject_id: number;
+		term_id: number;
+	};
 	updated_at: string;
 	updated_by: number;
 }

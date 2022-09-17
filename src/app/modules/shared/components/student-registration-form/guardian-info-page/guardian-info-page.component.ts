@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
-import { FormControl, FormGroup, ValidationErrors } from "@angular/forms";
+import { FormGroup } from "@angular/forms";
 import { SlideTriggerOptions } from "../student-registration-form.component";
 
 @Component({

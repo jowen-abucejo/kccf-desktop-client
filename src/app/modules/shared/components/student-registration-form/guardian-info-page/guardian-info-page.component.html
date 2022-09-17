@@ -52,9 +52,18 @@
                             formControlName="name_suffix">
                         </ion-input>
                     </ion-item>
-                    <app-date-picker [date_picker_id]="'date_picker_'+target" [label]="targets[target]+'\'s Birth Date'"
-                        [dateFormControl]="guardianInfoFormGroup.controls.birth_date" popover_vertical_offset="-350px">
-                    </app-date-picker>
+                    <ion-item>
+                        <ion-label>{{ targets[target]+'\'s Birth Date' }}</ion-label>
+                        <ion-datetime-button slot="end" [datetime]="targets[target]+'_birth_date'">
+                        </ion-datetime-button>
+                        <ion-popover show-backdrop="false" [keepContentsMounted]="true">
+                            <ng-template>
+                                <ion-datetime [presentation]="'date'" locale="en-US" formControlName="birth_date"
+                                    [id]="targets[target]+'_birth_date'" show-clear-button show-default-buttons>
+                                </ion-datetime>
+                            </ng-template>
+                        </ion-popover>
+                    </ion-item>
                     <ion-item>
                         <ion-label position="floating">Occupation</ion-label>
                         <ion-input type="text" placeholder="Occupation" formControlName="occupation"></ion-input>

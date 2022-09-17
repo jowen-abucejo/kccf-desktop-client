@@ -46,6 +46,22 @@ const routes: Routes = [
 			),
 		canLoad: [AuthenticationGuard],
 	},
+	{
+		path: "programs",
+		loadChildren: () =>
+			import("./pages/programs/programs.module").then(
+				(m) => m.ProgramsPageModule
+			),
+		canLoad: [AuthenticationGuard],
+	},
+	{
+		path: "subjects",
+		loadChildren: () =>
+			import("./pages/subjects/subjects.module").then(
+				(m) => m.SubjectsPageModule
+			),
+		canLoad: [AuthenticationGuard],
+	},
 ];
 
 @NgModule({

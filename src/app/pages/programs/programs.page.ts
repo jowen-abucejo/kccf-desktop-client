@@ -1,4 +1,3 @@
-import { formatDate } from "@angular/common";
 import { HttpErrorResponse } from "@angular/common/http";
 import {
 	Component,
@@ -19,27 +18,31 @@ import {
 } from "@ionic/angular";
 import { DataTableDirective } from "angular-datatables";
 import { Course } from "src/app/interfaces/course";
+import { CourseSubject } from "src/app/interfaces/course-subject";
+import { EducationLevel } from "src/app/interfaces/education-level";
 import { Level } from "src/app/interfaces/level";
 import { SchoolSetting } from "src/app/interfaces/school-setting";
 import { Student } from "src/app/interfaces/student";
 import { StudentType } from "src/app/interfaces/student-type";
 import { TablePage } from "src/app/interfaces/table-page";
+import { Term } from "src/app/interfaces/term";
+import { ProgramsFormComponent } from "src/app/modules/shared/components/programs-form/programs-form.component";
 import { RowContextMenuComponent } from "src/app/modules/shared/components/row-context-menu/row-context-menu.component";
-import { StudentRegistrationFormComponent } from "src/app/modules/shared/components/student-registration-form/student-registration-form.component";
 import { ApiService } from "src/app/services/api.service";
 import {
 	StorageService,
 	TABLE_SETTINGS_PREFIX,
-} from "../../services/storage.service";
+} from "src/app/services/storage.service";
 
 @Component({
-	selector: "app-students",
-	templateUrl: "./students.page.html",
-	styleUrls: ["./students.page.scss"],
+	selector: "app-programs",
+	templateUrl: "./programs.page.html",
+	styleUrls: ["./programs.page.scss"],
 })
-export class StudentsPage
+export class ProgramsPage
 	implements OnInit, ViewWillLeave, ViewWillEnter, TablePage
 {
+	active_enrollments: SchoolSetting[] = [];
 	buttons: {
 		label: string;
 		callback: () => any;
@@ -66,31 +69,27 @@ export class StudentsPage
 	categories: {
 		name: string;
 		filter_key: string;
-		items: Level[] | Course[] | StudentType[];
+		items: EducationLevel[];
 	}[] = [];
 	filters = {
-		student_status: "ALL",
-		levels: [],
-		programs: [],
-		student_types: [],
+		program_status: "ALL",
+		program_levels: [],
 	};
 	hasScrollbar = false;
 	levels: Level[] = [];
 	isSearching: boolean = false;
+	program_levels: EducationLevel[] = [];
 	programs: Course[] = [];
-	school_settings: SchoolSetting[] = [];
-	student_types: StudentType[] = [];
-	private students: Student[] = [];
+	subjects: CourseSubject[] = [];
 	private table_columns: any[] = [];
 	private table_data_status = {
 		current_page: 0,
-		end_date: "",
 		last_page: 2,
 		limit: 15,
 		order: "DESC",
 		search: "",
-		start_date: "",
 	};
+	terms: Term[] = [];
 
 	// checks if there's a scrollbar when the user resizes the window or zooms in/out
 	@HostListener("window:resize", ["$event"])
@@ -102,32 +101,12 @@ export class StudentsPage
 	dataTableElement: DataTableDirective;
 
 	dtOptions = {
-		data: this.students,
+		data: this.programs,
 		columns: [
 			{ title: "ID", data: "id" },
-			{ title: "Student Number", data: "student_number" },
-			{ title: "Program", data: "program.code" },
-			{ title: "Level", data: "level.code" },
-			{
-				title: "Last name",
-				data: null,
-				render: (data, type, row) => {
-					return (
-						row.registration.last_name +
-						" " +
-						row.registration.name_suffix
-					).trim();
-				},
-			},
-			{ title: "First name", data: "registration.first_name" },
-			{ title: "Middle Name", data: "registration.middle_name" },
-			{
-				title: "Birth Date",
-				data: "registration.birth_date",
-				render: (data, type, row) => {
-					return formatDate(data, "mediumDate", "en-US");
-				},
-			},
+			{ title: "Code", data: "code" },
+			{ title: "Description", data: "description" },
+			{ title: "Education Level", data: "program_level.description" },
 			{
 				title: "Status",
 				data: null,
@@ -141,7 +120,7 @@ export class StudentsPage
 		searching: true,
 		ordering: true,
 		colReorder: true,
-		order: [[1, "desc"]],
+		order: [[1, "asc"]],
 		autoWidth: true,
 		info: false,
 		dom: "rtip",
@@ -275,7 +254,7 @@ export class StudentsPage
 			// 	className: "dynamic-text-alignment ion-padding-right",
 			// },
 		],
-		rowCallback: (row: Node, data: Student, index: number) => {
+		rowCallback: (row: Node, data: Course, index: number) => {
 			// Unbind first in order to avoid any duplicate handler
 			// (see https://github.com/l-lin/angular-datatables/issues/87)
 			// Note: In newer jQuery v3 versions, `unbind` and `bind` are
@@ -288,7 +267,7 @@ export class StudentsPage
 		},
 	};
 
-	table_name = "studentsTable";
+	table_name = "programsTable";
 	table_settings;
 
 	@ViewChild("tableContent", { static: false }) private content: IonContent;
@@ -304,22 +283,18 @@ export class StudentsPage
 		private alertController: AlertController
 	) {}
 
-	async ionViewWillEnter(): Promise<void> {
-		this.getSchoolSettings(true);
-		this.getPrograms(true);
-	}
+	async ionViewWillEnter(): Promise<void> {}
 
 	async ionViewWillLeave(): Promise<void> {
-		this.school_settings = [];
-		this.programs = [];
 		// await this.saveTableSettings();
 	}
 
 	async ngOnInit() {
 		// await this.loadTableSettings();
 		this.getLevels();
-		this.getStudentTypes().then(async () => {
-			await this.loadMoreData();
+		this.getProgramLevels();
+		this.getSubjects().then(async () => {
+			await this.loadMoreData().then(() => this.checkForScrollbar());
 		});
 	}
 
@@ -352,27 +327,27 @@ export class StudentsPage
 		return;
 	}
 
-	private async createContextMenu(e: any, student: Student, index: number) {
+	private async createContextMenu(e: any, program: Course, index: number) {
 		const menu = await this.popoverController.create({
 			component: RowContextMenuComponent,
 			event: e.originalEvent,
 			componentProps: {
-				subtitle: "Student ID: " + student.student_number,
+				subtitle: "Program Code: " + program.code,
 				options: [
 					{
-						label: "View Registration",
+						label: "View Curriculum",
 						icon_name: "eye-outline",
 						callback: () => {
-							this.viewProfile(student, index);
+							this.viewCurriculum(program, index);
 						},
 					},
 					{
-						label: student.deleted_at ? "Activate" : "Deactivate",
-						icon_name: student.deleted_at
+						label: program.deleted_at ? "Activate" : "Deactivate",
+						icon_name: program.deleted_at
 							? "checkmark-circle-outline"
 							: "close-circle-outline",
 						callback: () => {
-							this.toggleStatus(student, index);
+							this.toggleStatus(program, index);
 						},
 					},
 				],
@@ -392,33 +367,28 @@ export class StudentsPage
 		page: number = this.table_data_status.current_page + 1,
 		limit: number = this.table_data_status.limit,
 		order: string = this.table_data_status.order,
-		search: string = this.table_data_status.search,
-		start_date: string = this.table_data_status.start_date,
-		end_date: string = this.table_data_status.end_date
+		search: string = this.table_data_status.search
 	) {
 		if (this.table_data_status.last_page <= page) return;
-		const students = await this.apiService
-			.getStudents({
+		const programs = await this.apiService
+			.getPrograms(true, {
 				page,
 				limit,
 				order,
 				search,
-				start_date,
-				end_date,
-				"st[]": this.filters.student_types,
-				student_status: this.filters.student_status,
-				"l[]": this.filters.levels,
-				"p[]": this.filters.programs,
+				withTrashed: 1,
+				program_status: this.filters.program_status,
+				"pl[]": this.filters.program_levels,
 			})
 			.catch((er) => {
 				return null;
 			});
-		if (students) this.addNewRows(students);
+		if (programs) this.addNewRows(programs);
 	}
 
-	async filterStudents(event: any = null) {
+	async filterPrograms(event: any = null) {
 		//check if event is new set of filters
-		if (event !== null && "programs" in event) this.filters = event;
+		if (event !== null && "program_levels" in event) this.filters = event;
 
 		const dtInstance = await this.dataTableElement.dtInstance;
 		dtInstance.rows().remove();
@@ -429,21 +399,7 @@ export class StudentsPage
 		this.table_data_status.last_page = 2;
 		this.table_data_status.limit = 15;
 		this.table_data_status.order = "DESC";
-
 		await this.loadMoreData().then(() => this.checkForScrollbar());
-	}
-
-	/**
-	 * Get all programs
-	 */
-	async getPrograms(fresh: boolean = false) {
-		this.programs = await this.apiService
-			.getPrograms(fresh, { withTrashed: 1 })
-			.catch((er) => {
-				return [];
-			});
-
-		this.filters.programs = this.programs.map((p) => p.id);
 	}
 
 	/**
@@ -453,27 +409,39 @@ export class StudentsPage
 		this.levels = await this.apiService.getLevels().catch((er) => {
 			return [];
 		});
-		this.filters.levels = this.levels.map((l) => l.id);
 	}
 
 	/**
-	 * Get all student types
+	 * Get all program levels
 	 */
-	async getStudentTypes() {
-		this.student_types = await this.apiService
-			.getStudentTypes()
+	async getProgramLevels() {
+		this.program_levels = await this.apiService
+			.getProgramLevels()
 			.catch((er) => {
 				return [];
 			});
-		this.filters.student_types = this.student_types.map((s) => s.id);
+
+		this.filters.program_levels = this.program_levels.map((p) => p.id);
 	}
 
-	async getSchoolSettings(fresh: boolean = false) {
-		this.school_settings = await this.apiService
-			.getSchoolSettings(fresh)
-			.catch((res) => {
+	/**
+	 * Get all subjects
+	 */
+	async getSubjects() {
+		this.subjects = await this.apiService
+			.getSubjects(true, { withTrashed: 1 })
+			.catch((er) => {
 				return [];
 			});
+	}
+
+	/**
+	 * Get all terms
+	 */
+	async getTerms() {
+		this.terms = await this.apiService.getTerms().catch((er) => {
+			return [];
+		});
 	}
 
 	async loadTableSettings() {
@@ -571,53 +539,41 @@ export class StudentsPage
 		// event.stopPropagation;
 		this.fab.activated = false;
 
-		this.categories.push(
-			{ name: "Levels", filter_key: "levels", items: this.levels },
-			{ name: "Programs", filter_key: "programs", items: this.programs },
-			{
-				name: "Student Types",
-				filter_key: "student_types",
-				items: this.student_types,
-			}
-		);
+		this.categories.push({
+			name: "Education Levels",
+			filter_key: "program_levels",
+			items: this.program_levels,
+		});
 	}
 
-	private async showRegistrationForm(
-		student: Student = null,
-		row_index: number
-	) {
+	private async showProgramForm(program: Course = null, row_index: number) {
 		let event_emitter = new EventEmitter();
+		const dtInstance = await this.dataTableElement.dtInstance;
 		event_emitter.subscribe(
-			async (res: { new_student: Student; row_index: number }) => {
-				if (!res.new_student) return;
+			async (res: { new_program: Course; row_index: number }) => {
+				if (!res.new_program) return;
 				if (
 					res.row_index > -1 &&
-					this.filters.levels.includes(res.new_student.level_id) &&
-					this.filters.programs.includes(
-						res.new_student.program_id
+					this.filters.program_levels.includes(
+						res.new_program.program_level_id
 					) &&
-					this.filters.student_types.includes(
-						res.new_student.student_type_id
-					) &&
-					(res.new_student.registration.last_name.indexOf(
+					(res.new_program.code.indexOf(
 						this.table_data_status.search
 					) > -1 ||
-						res.new_student.registration.first_name.indexOf(
+						res.new_program.description.indexOf(
 							this.table_data_status.search
 						) > -1)
 				) {
 					//update row data and redraw
-					const dtInstance = await this.dataTableElement.dtInstance;
 					const data_index = dtInstance.rows().indexes()[
 						res.row_index
 					];
-					dtInstance.row(data_index).data(res.new_student);
+					dtInstance.row(data_index).data(res.new_program);
 					dtInstance.row(data_index).invalidate("data").draw();
 					this.popoverController.dismiss();
 				} else {
 					//add new row and redraw
-					const dtInstance = await this.dataTableElement.dtInstance;
-					dtInstance.row.add(res.new_student);
+					dtInstance.row.add(res.new_program);
 					dtInstance.rows().draw();
 				}
 			}
@@ -625,26 +581,17 @@ export class StudentsPage
 
 		//create modal
 		const modal = await this.modalController.create({
-			component: StudentRegistrationFormComponent,
+			component: ProgramsFormComponent,
 			componentProps: {
-				active_enrollments: student
-					? this.school_settings
-					: this.school_settings.filter(
-							(value) =>
-								new Date() >=
-									new Date(value.enrollment_start_date) &&
-								new Date() <=
-									new Date(value.enrollment_end_date)
-					  ),
 				levels: this.levels,
-				programs: student
-					? this.programs
-					: this.programs.filter((value) => value.deleted_at == null),
+				program: program,
+				programs: dtInstance.rows().data().toArray(),
+				program_levels: this.program_levels,
 				row_index: row_index,
-				student: student,
-				student_types: this.student_types,
-				trigger: "",
 				success_registration: event_emitter,
+				subjects: this.subjects,
+				terms: this.terms,
+				trigger: "",
 			},
 			cssClass: "modal-fullscreen",
 			backdropDismiss: false,
@@ -663,7 +610,7 @@ export class StudentsPage
 		dtInstance.columns.adjust();
 	}
 
-	private async toggleStatus(student: Student, index: number) {
+	private async toggleStatus(program: Course, index: number) {
 		const loading = await this.loadingController.create({
 			spinner: "bubbles",
 			backdropDismiss: false,
@@ -671,7 +618,7 @@ export class StudentsPage
 		await loading.present();
 
 		let result: any = await this.apiService
-			.deleteStudent(student.id)
+			.deleteProgram(program.id)
 			.catch(async (res: HttpErrorResponse) => {
 				await loading.dismiss();
 				const alert = await this.alertController.create({
@@ -692,7 +639,7 @@ export class StudentsPage
 			//update row data and redraw
 			const dtInstance = await this.dataTableElement.dtInstance;
 			const data_index = dtInstance.rows().indexes()[index];
-			if (this.filters.student_status == "ALL") {
+			if (this.filters.program_status == "ALL") {
 				dtInstance.row(data_index).data()["deleted_at"] =
 					result.deleted_at;
 				dtInstance.row(data_index).invalidate("data").draw();
@@ -704,7 +651,7 @@ export class StudentsPage
 		}
 	}
 
-	private async viewProfile(student: Student, row_index: number) {
-		await this.showRegistrationForm(student, row_index);
+	private async viewCurriculum(program: Course, row_index: number) {
+		await this.showProgramForm(program, row_index);
 	}
 }

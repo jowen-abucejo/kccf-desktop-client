@@ -1,19 +1,19 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 
-import { DatePickerComponent } from './date-picker.component';
+import { TableExportComponent } from './table-export.component';
 
-describe('DatePickerComponent', () => {
-  let component: DatePickerComponent;
-  let fixture: ComponentFixture<DatePickerComponent>;
+describe('TableExportComponent', () => {
+  let component: TableExportComponent;
+  let fixture: ComponentFixture<TableExportComponent>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ DatePickerComponent ],
+      declarations: [ TableExportComponent ],
       imports: [IonicModule.forRoot()]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(DatePickerComponent);
+    fixture = TestBed.createComponent(TableExportComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   }));

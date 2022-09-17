@@ -6,7 +6,7 @@ import { Component, Input, OnInit } from "@angular/core";
 	styleUrls: ["./row-context-menu.component.scss"],
 })
 export class RowContextMenuComponent implements OnInit {
-	@Input() student_number: string;
+	@Input() subtitle: string;
 	@Input() options: {
 		label: string;
 		icon_name: string;

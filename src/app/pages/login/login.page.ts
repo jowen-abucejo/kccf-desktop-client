@@ -38,7 +38,7 @@ export class LoginPage implements OnInit {
 	ngOnInit() {}
 
 	async login() {
-		const loading = await loadingController.create({
+		const loading = await this.loadingController.create({
 			spinner: "bubbles",
 			backdropDismiss: false,
 		});
@@ -64,7 +64,7 @@ export class LoginPage implements OnInit {
 				async (res: HttpErrorResponse) => {
 					await loading.dismiss();
 					const alert = await this.alertController.create({
-						header: res.error.error,
+						header: res.error.error ?? "Login Failed!",
 						message: res.error.message,
 						buttons: ["OK"],
 					});

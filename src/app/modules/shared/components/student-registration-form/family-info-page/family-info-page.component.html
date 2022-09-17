@@ -99,10 +99,19 @@
                             </ion-item>
                         </ion-col>
                         <ion-col size-lg="4" size="12">
-                            <app-date-picker [date_picker_id]="'sibling_date_picker_'+i"
-                                [dateFormControl]="sibling.controls.birth_date" label="Birth Date"
-                                popover_vertical_offset="-350px">
-                            </app-date-picker>
+                            <ion-item>
+                                <ion-label>Birth Date</ion-label>
+                                <ion-datetime-button slot="end" [datetime]="'birth_date'+i">
+                                </ion-datetime-button>
+                                <ion-popover show-backdrop="false" [keepContentsMounted]="true">
+                                    <ng-template>
+                                        <ion-datetime [presentation]="'date'" locale="en-US"
+                                            formControlName="birth_date" [id]="'birth_date'+i" show-clear-button
+                                            show-default-buttons>
+                                        </ion-datetime>
+                                    </ng-template>
+                                </ion-popover>
+                            </ion-item>
                         </ion-col>
                     </ion-row>
                 </ion-col>
@@ -130,7 +139,7 @@
             <ion-button (click)="submitForm()" fill="solid" color="primary" class="ion-margin-vertical"
                 [disabled]="!familyInfoFormGroup.valid">
                 <ion-icon slot="end" name="arrow-forward"></ion-icon>
-                REGISTER STUDENT
+                {{ student? 'UPDATE STUDENT REGISTRATION' : 'REGISTER STUDENT' }}
             </ion-button>
         </ion-col>
     </ion-row>

@@ -2,7 +2,7 @@
     <ng-template> -->
 <ion-header>
     <ion-toolbar color="primary">
-        <ion-title>REGISTER NEW STUDENT</ion-title>
+        <ion-title>{{ student? 'UPDATE STUDENT REGISTRATION' : 'REGISTER NEW STUDENT' }}</ion-title>
         <ion-buttons slot="end" class="ion-margin-end">
             <ion-button (click)="closeRegistrationModal()" fill="solid" color="danger">
                 <span title="CANCEL">
@@ -17,7 +17,51 @@
 
         <ng-template swiperSlide>
             <div class="slide">
-                <ion-grid fixed>
+                <ion-grid fixed *ngIf="!registration">
+                    <ion-row>
+                        <ion-col size-lg="6" offset-lg="3" size="12">
+                            <ion-list style="margin-bottom: 100px;">
+                                <ion-item-group>
+                                    <ion-item-divider>
+                                        <ion-label>Admission Details</ion-label>
+                                    </ion-item-divider>
+                                    <ion-item>
+                                        <ion-label position="stacked">Date & Time of Registration</ion-label>
+                                        <ion-skeleton-text animated style="width: 100%; height: 22px;"
+                                            class="ion-margin-top">
+                                        </ion-skeleton-text>
+                                    </ion-item>
+                                    <ion-item>
+                                        <ion-label position="stacked">Academic Year & Term</ion-label>
+                                        <ion-skeleton-text animated style="width: 100%; height: 22px;"
+                                            class="ion-margin-top">
+                                        </ion-skeleton-text>
+                                    </ion-item>
+                                    <ion-item>
+                                        <ion-label position="stacked">Program</ion-label>
+                                        <ion-skeleton-text animated style="width: 100%; height: 22px;"
+                                            class="ion-margin-top">
+                                        </ion-skeleton-text>
+                                    </ion-item>
+                                    <ion-item>
+                                        <ion-label position="stacked">Level/Grade/Year</ion-label>
+                                        <ion-skeleton-text animated style="width: 100%; height: 22px;"
+                                            class="ion-margin-top">
+                                        </ion-skeleton-text>
+                                    </ion-item>
+                                    <ion-item>
+                                        <ion-label position="stacked">Student Type</ion-label>
+                                        <ion-skeleton-text animated style="width: 100%; height: 22px;"
+                                            class="ion-margin-top">
+                                        </ion-skeleton-text>
+                                    </ion-item>
+                                </ion-item-group>
+                            </ion-list>
+                        </ion-col>
+                    </ion-row>
+                </ion-grid>
+
+                <ion-grid fixed *ngIf="registration">
                     <ion-row [formGroup]="registration.controls.admission_details">
                         <ion-col size-lg="6" offset-lg="3" size="12">
                             <ion-list>
@@ -25,11 +69,19 @@
                                     <ion-item-divider>
                                         <ion-label>Admission Details</ion-label>
                                     </ion-item-divider>
-                                    <app-date-picker date_picker_id="registration_date_picker"
-                                        placeholder="mm-dd-yyyy HH:mm:ss" presentation="date-time"
-                                        label="Date and Time of Registration (Optional)"
-                                        [dateFormControl]="registration.controls.admission_details.controls.registration_date">
-                                    </app-date-picker>
+                                    <ion-item>
+                                        <ion-label>Date and Time of Registration</ion-label>
+                                        <ion-datetime-button slot="end" datetime="registration_date1">
+                                        </ion-datetime-button>
+                                        <ion-popover show-backdrop="false" [keepContentsMounted]="true">
+                                            <ng-template>
+                                                <ion-datetime [presentation]="'date-time'" locale="en-US"
+                                                    formControlName="registration_date" id="registration_date1"
+                                                    show-clear-button show-default-buttons>
+                                                </ion-datetime>
+                                            </ng-template>
+                                        </ion-popover>
+                                    </ion-item>
                                     <ion-item>
                                         <ion-label position="floating">Academic Year & Term</ion-label>
                                         <ion-select interface="popover" placeholder="**Select**"
@@ -91,7 +143,7 @@
 
         <ng-template swiperSlide>
             <div class="slide">
-                <app-basic-info-page (triggerSlide)="slidePage($event)"
+                <app-basic-info-page (triggerSlide)="slidePage($event)" *ngIf="registration"
                     [basicInfoFormGroup]="registration.controls.basic_info">
                 </app-basic-info-page>
             </div>
@@ -99,7 +151,7 @@
 
         <ng-template swiperSlide>
             <div class="slide">
-                <app-guardian-info-page (triggerSlide)="slidePage($event)"
+                <app-guardian-info-page (triggerSlide)="slidePage($event)" *ngIf="registration"
                     [guardianInfoFormGroup]="registration.controls.mother_info">
                 </app-guardian-info-page>
             </div>
@@ -107,7 +159,7 @@
 
         <ng-template swiperSlide>
             <div class="slide">
-                <app-guardian-info-page (triggerSlide)="slidePage($event)"
+                <app-guardian-info-page (triggerSlide)="slidePage($event)" *ngIf="registration"
                     [guardianInfoFormGroup]="registration.controls.father_info" [target]="1">
                 </app-guardian-info-page>
             </div>
@@ -115,7 +167,7 @@
 
         <ng-template swiperSlide>
             <div class="slide">
-                <app-guardian-info-page (triggerSlide)="slidePage($event)"
+                <app-guardian-info-page (triggerSlide)="slidePage($event)" *ngIf="registration"
                     [guardianInfoFormGroup]="registration.controls.guardian_info" [target]="2">
                 </app-guardian-info-page>
             </div>
@@ -123,7 +175,7 @@
 
         <ng-template swiperSlide>
             <div class="slide">
-                <app-education-background-page (triggerSlide)="slidePage($event)"
+                <app-education-background-page (triggerSlide)="slidePage($event)" *ngIf="registration"
                     [educationFormGroup]="registration.controls.education" [selected_program]="selected_program">
                 </app-education-background-page>
             </div>
@@ -132,8 +184,8 @@
         <ng-template swiperSlide>
             <div class="slide">
                 <app-family-info-page (triggerSlide)="slidePage($event)" (register)="submitRegistration($event)"
-                    (siblingFieldOperation)="handleSiblingFieldOperation($event)"
-                    [familyInfoFormGroup]="registration['controls'].family_info">
+                    *ngIf="registration" (siblingFieldOperation)="handleSiblingFieldOperation($event)"
+                    [familyInfoFormGroup]="registration['controls'].family_info" [student]="student">
                 </app-family-info-page>
             </div>
         </ng-template>

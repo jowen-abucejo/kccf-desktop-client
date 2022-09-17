@@ -47,40 +47,22 @@
                         </ion-menu-toggle>
                         <ion-menu-toggle menu="side-menu" auto-hide="false" [hidden]="!isAuthenticated">
                             <ion-item [routerLink]="['/school-settings']" routerLinkActive="router-link-active">
-                                <ion-icon name="settings-outline" slot="start"></ion-icon>
+                                <ion-icon name="construct-outline" slot="start"></ion-icon>
                                 <ion-label>SCHOOL SETTINGS</ion-label>
                             </ion-item>
                         </ion-menu-toggle>
-                        <!-- <ion-menu-toggle
-							menu="side-menu"
-							auto-hide="false"
-							[hidden]="!isTreasury"
-							><ion-item
-								[routerLink]="['/payments']"
-								routerLinkActive="router-link-active"
-							>
-								<ion-icon
-									name="scan-outline"
-									slot="start"
-								></ion-icon>
-								<ion-label>Payments</ion-label>
-							</ion-item></ion-menu-toggle
-						>
-						<ion-menu-toggle
-							menu="side-menu"
-							auto-hide="false"
-							[hidden]="!isAdmin"
-							><ion-item
-								[routerLink]="['/users']"
-								routerLinkActive="router-link-active"
-							>
-								<ion-icon
-									name="people-outline"
-									slot="start"
-								></ion-icon>
-								<ion-label>User Accounts</ion-label>
-							</ion-item></ion-menu-toggle
-						> -->
+                        <ion-menu-toggle menu="side-menu" auto-hide="false" [hidden]="!isAuthenticated">
+                            <ion-item [routerLink]="['/programs']" routerLinkActive="router-link-active">
+                                <ion-icon name="school-outline" slot="start"></ion-icon>
+                                <ion-label>CURRICULUM</ion-label>
+                            </ion-item>
+                        </ion-menu-toggle>
+                        <ion-menu-toggle menu="side-menu" auto-hide="false" [hidden]="!isAuthenticated">
+                            <ion-item [routerLink]="['/subjects']" routerLinkActive="router-link-active">
+                                <ion-icon name="book-outline" slot="start"></ion-icon>
+                                <ion-label>SUBJECTS</ion-label>
+                            </ion-item>
+                        </ion-menu-toggle>
                     </ion-item-group>
                     <!-- <ion-item-group [hidden]="!isAdmin">
 						<ion-item-divider>

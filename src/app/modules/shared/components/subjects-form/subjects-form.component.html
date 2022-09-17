@@ -1,0 +1,53 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-title>{{ school_setting? 'UPDATE' : 'NEW' }} SUBJECT</ion-title>
+        <ion-buttons slot="end" class="ion-margin-end">
+            <ion-button (click)="closeSubjectsModal()" fill="solid" color="danger">
+                <span title="CANCEL">
+                    <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+                </span>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+<ion-content fullscreen>
+    <ion-grid fixed>
+        <ion-row>
+            <ion-col size="12">
+                <form [formGroup]="course_subject_form" (ngSubmit)="submitSubjectForm()">
+
+                    <ion-list>
+                        <ion-item-group>
+                            <ion-item-divider>
+                                <ion-label>Subject Details</ion-label>
+                            </ion-item-divider>
+
+                            <ion-item>
+                                <ion-label position="floating">Curriculum Code</ion-label>
+                                <ion-input formControlName="code"></ion-input>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label position="floating">Curriculum Description</ion-label>
+                                <ion-input formControlName="description"></ion-input>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label position="floating">Lecture Units</ion-label>
+                                <ion-input formControlName="lec_units" type="number" min="0" step="1"></ion-input>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label position="floating">Laboratory Units</ion-label>
+                                <ion-input formControlName="lab_units" type="number" min="0" step="1"></ion-input>
+                            </ion-item>
+
+                            <ion-button type="submit" expand="block" class="ion-margin-vertical"
+                                [disabled]="!course_subject_form.valid">
+                                {{ course_subject? 'UPDATE' : 'CREATE' }} SUBJECT
+                            </ion-button>
+                        </ion-item-group>
+                    </ion-list>
+                </form>
+
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+</ion-content>

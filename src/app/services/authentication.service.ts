@@ -9,8 +9,8 @@ import { StorageService } from "./storage.service";
 
 export const TOKEN_KEY = "_token_";
 const LOG_ENDPOINTS = {
-	LOGIN: "users/user/login",
-	LOGOUT: "users/user/logout",
+	LOGIN: "users/login",
+	LOGOUT: "users/logout",
 };
 
 @Injectable({

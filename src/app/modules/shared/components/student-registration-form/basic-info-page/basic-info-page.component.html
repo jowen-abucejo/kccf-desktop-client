@@ -41,9 +41,18 @@
                             <ion-select-option value="separated">SEPARATED</ion-select-option>
                         </ion-select>
                     </ion-item>
-                    <app-date-picker label="Birth Date" [dateFormControl]="basicInfoFormGroup.controls.birth_date"
-                        date_picker_id="date_picker_basic_info" popover_vertical_offset="-350px">
-                    </app-date-picker>
+                    <ion-item>
+                        <ion-label>Birth Date</ion-label>
+                        <ion-datetime-button slot="end" [datetime]="'birth_date_'">
+                        </ion-datetime-button>
+                        <ion-popover show-backdrop="false" [keepContentsMounted]="true">
+                            <ng-template>
+                                <ion-datetime [presentation]="'date'" locale="en-US" formControlName="birth_date"
+                                    [id]="'birth_date_'" show-clear-button show-default-buttons>
+                                </ion-datetime>
+                            </ng-template>
+                        </ion-popover>
+                    </ion-item>
                     <ion-item>
                         <ion-label position="floating">Birth Place</ion-label>
                         <ion-input type="text" placeholder="Birth Place" label="Birth Date"

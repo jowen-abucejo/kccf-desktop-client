@@ -1,5 +1,12 @@
 import { HttpErrorResponse, HttpResponse } from "@angular/common/http";
-import { Component, Input, OnInit, ViewChild } from "@angular/core";
+import {
+	Component,
+	EventEmitter,
+	Input,
+	OnInit,
+	Output,
+	ViewChild,
+} from "@angular/core";
 import {
 	FormArray,
 	FormBuilder,
@@ -7,7 +14,11 @@ import {
 	FormGroup,
 	Validators,
 } from "@angular/forms";
-import { AlertController, ModalController } from "@ionic/angular";
+import {
+	AlertController,
+	LoadingController,
+	ModalController,
+} from "@ionic/angular";
 import { Course } from "src/app/interfaces/course";
 import { Level } from "src/app/interfaces/level";
 import { SchoolSetting } from "src/app/interfaces/school-setting";
@@ -23,8 +34,6 @@ import SwiperCore, {
 	Zoom,
 } from "swiper";
 import { SwiperComponent } from "swiper/angular";
-import { stringISOToTimeStamp } from "../date-picker/date-picker.component";
-
 export interface SlideTriggerOptions {
 	direction: string;
 	unique_validation: boolean;
@@ -40,9 +49,9 @@ export const regex_tests = {
 	zip: /^[0-9]{4}$/,
 	mobile: /^[9][0-9]{9}$/,
 	academic_year: /^(19|20)\d{2}[-](19|20)\d{2}$/,
-	date: /^[0-9]{4}[-][0-9]{2}[-][0-9]{2}$/,
-	date_time:
-		/^(((\d{4})(-)(0[13578]|10|12)(-)(0[1-9]|[12][0-9]|3[01]))|((\d{4})(-)(0[469]|11)(-)([0][1-9]|[12][0-9]|30))|((\d{4})(-)(02)(-)(0[1-9]|1[0-9]|2[0-8]))|(([02468][048]00)(-)(02)(-)(29))|(([13579][26]00)(-)(02)(-)(29))|(([0-9][0-9][0][48])(-)(02)(-)(29))|(([0-9][0-9][2468][048])(-)(02)(-)(29))|(([0-9][0-9][13579][26])(-)(02)(-)(29)))(\s([0-1][0-9]|2[0-4]):([0-5][0-9]):([0-5][0-9]))$/,
+	// date: /^[0-9]{4}[-][0-9]{2}[-][0-9]{2}$/,
+	// date_time:
+	// 	/^(((\d{4})(-)(0[13578]|10|12)(-)(0[1-9]|[12][0-9]|3[01]))|((\d{4})(-)(0[469]|11)(-)([0][1-9]|[12][0-9]|30))|((\d{4})(-)(02)(-)(0[1-9]|1[0-9]|2[0-8]))|(([02468][048]00)(-)(02)(-)(29))|(([13579][26]00)(-)(02)(-)(29))|(([0-9][0-9][0][48])(-)(02)(-)(29))|(([0-9][0-9][2468][048])(-)(02)(-)(29))|(([0-9][0-9][13579][26])(-)(02)(-)(29)))(\s([0-1][0-9]|2[0-4]):([0-5][0-9]):([0-5][0-9]))$/,
 };
 
 SwiperCore.use([Autoplay, Keyboard, Pagination, Scrollbar, Zoom]);
@@ -54,12 +63,21 @@ SwiperCore.use([Autoplay, Keyboard, Pagination, Scrollbar, Zoom]);
 export class StudentRegistrationFormComponent implements OnInit {
 	@Input() trigger: string;
 	@Input() active_enrollments: SchoolSetting[] = [];
+	@Input() levels: Level[] = [];
+	@Input() programs: Course[] = [];
+	@Input() row_index: number = -1;
 	@Input() student: Student = null;
-	levels: any = [];
-	programs: Course[] = [];
+	@Input() student_types: StudentType[] = [];
+	@Output() success_registration: EventEmitter<{
+		new_student: Student;
+		row_index: number;
+	}> = new EventEmitter<{
+		new_student: Student;
+		row_index: number;
+	}>();
 	registration: FormGroup;
 	selection_levels: Level[] = [];
-	student_types: StudentType[] = [];
+	private validating_email: boolean = false;
 
 	swiper_config: SwiperOptions = {
 		slidesPerView: 1,
@@ -72,37 +90,21 @@ export class StudentRegistrationFormComponent implements OnInit {
 		private apiService: ApiService,
 		private formBuilder: FormBuilder,
 		private alertController: AlertController,
-		private modalController: ModalController
+		private modalController: ModalController,
+		private loadingController: LoadingController
 	) {}
 
 	@ViewChild("swiper", { static: false }) swiper: SwiperComponent;
 	async ngOnInit() {
-		this.initializeRegistrationForm();
-		await this.getPrograms();
-		await this.getLevels();
-		await this.getStudentTypes();
-		if (this.student) {
-			const selected_program = this.programs.find(
-				(p) =>
-					p.id ==
-					this.registration.controls.admission_details.get("level_id")
-						.value
-			);
-			this.selection_levels =
-				this.levels[selected_program.program_level_id];
-			this.updateRequiredEducation(selected_program);
-
-			if (
-				this.registration.controls.mother_info.get("is_guardian")
-					.value ||
-				this.registration.controls.father_info.get("is_guardian").value
-			) {
-				this.registration.controls.guardian_info.disable();
-			}
+		if (this.programs.length === 0) this.getPrograms();
+		if (this.levels.length === 0) this.getLevels();
+		if (this.student_types.length === 0) {
+			this.getStudentTypes().finally(() => {
+				this.initialFormSetUp();
+			});
+		} else {
+			this.initialFormSetUp();
 		}
-
-		this.updateLevelSelection();
-		this.updateStudentType();
 	}
 
 	closeRegistrationModal() {
@@ -112,10 +114,12 @@ export class StudentRegistrationFormComponent implements OnInit {
 	/**
 	 * Get all courses and programs
 	 */
-	async getPrograms() {
-		this.programs = await this.apiService.getPrograms().catch((er) => {
-			return [];
-		});
+	async getPrograms(fresh: boolean = true) {
+		this.programs = await this.apiService
+			.getPrograms(fresh, { withTrashed: this.student != null })
+			.catch((er) => {
+				return [];
+			});
 	}
 
 	/**
@@ -176,8 +180,8 @@ export class StudentRegistrationFormComponent implements OnInit {
 					[Validators.pattern(regex_tests.suffix)],
 				],
 				birth_date: [
-					sibling ? sibling.birth_date : "",
-					[Validators.required, Validators.pattern(regex_tests.date)],
+					sibling ? new Date(sibling.birth_date).toJSON() : "",
+					[Validators.required],
 				],
 			});
 
@@ -206,14 +210,12 @@ export class StudentRegistrationFormComponent implements OnInit {
 					read ? read.student_type_id : 2,
 					Validators.required,
 				],
-				registration_date: [
-					read
-						? read.created_at.includes("T")
-							? stringISOToTimeStamp(read.created_at, true)
-							: read.created_at
-						: "",
-					[Validators.pattern(regex_tests.date_time)],
-				],
+				registration_date: read
+					? [
+							new Date(read.created_at).toJSON(),
+							[Validators.required],
+					  ]
+					: [""],
 			}),
 			basic_info: this.formBuilder.group({
 				last_name: [
@@ -238,8 +240,8 @@ export class StudentRegistrationFormComponent implements OnInit {
 					Validators.required,
 				],
 				birth_date: [
-					read ? read.birth_date : "",
-					[Validators.required, Validators.pattern(regex_tests.date)],
+					read ? new Date(read.birth_date).toJSON() : "",
+					[Validators.required],
 				],
 				birth_place: [
 					read ? read.birth_place : "",
@@ -295,8 +297,8 @@ export class StudentRegistrationFormComponent implements OnInit {
 					Validators.required,
 				],
 				birth_date: [
-					read ? read.guardians[0].birth_date : "",
-					[Validators.required, Validators.pattern(regex_tests.date)],
+					read ? new Date(read.guardians[0].birth_date).toJSON() : "",
+					[Validators.required],
 				],
 				same_address: [false],
 				address: this.formBuilder.group({
@@ -356,8 +358,8 @@ export class StudentRegistrationFormComponent implements OnInit {
 					Validators.required,
 				],
 				birth_date: [
-					read ? read.guardians[1].birth_date : "",
-					[Validators.required, Validators.pattern(regex_tests.date)],
+					read ? new Date(read.guardians[1].birth_date).toJSON() : "",
+					[Validators.required],
 				],
 				same_address: [false],
 				address: this.formBuilder.group({
@@ -439,9 +441,9 @@ export class StudentRegistrationFormComponent implements OnInit {
 				],
 				birth_date: [
 					read && read.guardians.length > 2
-						? read.guardians[2].birth_date
+						? new Date(read.guardians[2].birth_date).toJSON()
 						: "",
-					[Validators.required, Validators.pattern(regex_tests.date)],
+					[Validators.required],
 				],
 				same_address: [false],
 				address: this.formBuilder.group({
@@ -669,8 +671,10 @@ export class StudentRegistrationFormComponent implements OnInit {
 	}
 
 	async slidePage(options: SlideTriggerOptions) {
+		if (this.validating_email) return;
 		if (options.direction == "next") {
 			if (options.unique_validation) {
+				this.validating_email = true;
 				let email: string =
 					this.registration.controls.basic_info.get("email").value;
 				const is_valid_email = await this.apiService
@@ -692,32 +696,80 @@ export class StudentRegistrationFormComponent implements OnInit {
 							return false;
 						}
 					);
-
+				this.validating_email = false;
 				if (!is_valid_email) return;
 			}
-			this.swiper.swiperRef.slideNext();
-			return;
+			return this.swiper.swiperRef.slideNext();
 		}
 		if (options.direction == "previous") {
-			this.swiper.swiperRef.slidePrev();
+			return this.swiper.swiperRef.slidePrev();
 		}
 	}
 
 	async submitRegistration(submit: boolean = false) {
 		if (!submit) return;
 		const raw_data = this.registration.value;
-
+		const loading = await this.loadingController.create({
+			spinner: "bubbles",
+			backdropDismiss: false,
+		});
+		await loading.present();
 		let new_student = this.student
 			? await this.apiService
-					.updateRegistration(raw_data, this.student.registration.id)
-					.catch((er) => {
+					.updateRegistration(this.student.registration.id, raw_data)
+					.catch(async (res: HttpErrorResponse) => {
+						const alert = await this.alertController.create({
+							header: res.error.error,
+							message: res.error.message,
+							buttons: ["OK"],
+						});
+						await alert.present();
 						return null;
 					})
-			: await this.apiService.registerStudent(raw_data).catch((er) => {
-					return null;
-			  });
+			: await this.apiService
+					.registerStudent(raw_data)
+					.catch(async (res: HttpErrorResponse) => {
+						const alert = await this.alertController.create({
+							header: res.error.error,
+							message: res.error.message,
+							buttons: ["OK"],
+						});
+						await alert.present();
+						return null;
+					});
 
-		return new_student;
+		await loading.dismiss();
+		if (new_student) {
+			const alert = await this.alertController.create({
+				header:
+					this.row_index > -1
+						? "Registration Update Success"
+						: "Student Registration Success",
+				buttons: ["OK"],
+			});
+			await alert.present();
+
+			//emit new or updated data
+			this.success_registration.emit({
+				new_student,
+				row_index: this.row_index,
+			});
+			this.closeRegistrationModal();
+		}
+	}
+
+	updateLevel() {
+		return this.registration.controls.admission_details
+			.get("level_id")
+			.valueChanges.subscribe((value) => {
+				if (value)
+					this.showLevelsForProgram(
+						this.registration.controls.admission_details.get(
+							"program_id"
+						).value,
+						false
+					);
+			});
 	}
 
 	/**
@@ -725,34 +777,22 @@ export class StudentRegistrationFormComponent implements OnInit {
 	 * @returns a subscription that resets the level field and update the options on level selection
 	 */
 	updateLevelSelection() {
-		const admission_details = this.registration.controls
-			.admission_details as FormGroup;
-
-		return admission_details.controls.program_id.valueChanges.subscribe(
-			(value) => {
-				const selected_program = this.programs.find(
-					(p) => p.id == value
-				);
-				this.selection_levels =
-					this.levels[selected_program.program_level_id];
-				admission_details.controls.level_id.setValue(null);
-				this.updateRequiredEducation(selected_program);
-			}
-		);
+		return this.registration.controls.admission_details
+			.get("program_id")
+			.valueChanges.subscribe((value) => {
+				this.showLevelsForProgram(value);
+			});
 	}
 
 	updateStudentType() {
-		const admission_details = this.registration.controls
-			.admission_details as FormGroup;
-
-		return admission_details.controls.student_type_id.valueChanges.subscribe(
-			(value) => {
+		return this.registration.controls.admission_details
+			.get("student_type_id")
+			.valueChanges.subscribe((value) => {
 				const selected_type = this.student_types.find(
 					(t) => t.id == value
 				);
 				this.updateRequiredEducation(null, selected_type);
-			}
-		);
+			});
 	}
 
 	updateRequiredEducation(
@@ -818,9 +858,49 @@ export class StudentRegistrationFormComponent implements OnInit {
 		//Enable college education background fields if student is college transferee
 		if (
 			selected_program.program_level_id == 1 &&
-			selected_student_type.type != "NEW"
+			(selected_student_type.type != "NEW" ||
+				this.registration.controls.admission_details.get("level_id")
+					.value != 4)
 		) {
 			this.registration.controls.education.get("college").enable();
 		}
+	}
+
+	private showLevelsForProgram(
+		program_id: number,
+		reset_level: boolean = true
+	) {
+		const admission_details = this.registration.controls
+			.admission_details as FormGroup;
+		const selected_program = this.programs.find((p) => p.id == program_id);
+		this.selection_levels = this.levels.filter(
+			(value) =>
+				value.program_level_id === selected_program.program_level_id
+		);
+		if (reset_level) admission_details.controls.level_id.setValue(null);
+		this.updateRequiredEducation(selected_program);
+	}
+
+	private initialFormSetUp() {
+		this.initializeRegistrationForm();
+		if (this.student) {
+			this.showLevelsForProgram(
+				this.registration.controls.admission_details.get("program_id")
+					.value,
+				false
+			);
+
+			if (
+				this.registration.controls.mother_info.get("is_guardian")
+					.value ||
+				this.registration.controls.father_info.get("is_guardian").value
+			) {
+				this.registration.controls.guardian_info.disable();
+			}
+		}
+
+		this.updateLevel();
+		this.updateLevelSelection();
+		this.updateStudentType();
 	}
 }

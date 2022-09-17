@@ -1,0 +1,12 @@
+<ion-content class="ion-padding">
+    <ion-card-header class="ion-no-padding ion-padding-horizontal ion-padding-top">
+        <ion-card-title style="font-size: 1rem;">Export Record</ion-card-title>
+    </ion-card-header>
+    <ion-card-content class="ion-no-padding ion-padding-horizontal">
+        <ion-list *ngIf="buttons.length > 0" mode="md" class="ion-margin-top">
+            <ion-item *ngFor="let button of buttons" button (click)="button.callback()">
+                <ion-label class="ion-text-wrap">{{ button.label }}</ion-label>
+            </ion-item>
+        </ion-list>
+    </ion-card-content>
+</ion-content>

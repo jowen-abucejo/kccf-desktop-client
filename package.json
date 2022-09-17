@@ -24,7 +24,7 @@
     "@capacitor/haptics": "1.1.4",
     "@capacitor/keyboard": "1.2.2",
     "@capacitor/status-bar": "1.0.8",
-    "@ionic/angular": "^6.1.9",
+    "@ionic/angular": "^6.2.3",
     "@ionic/storage-angular": "^3.0.6",
     "angular-datatables": "^13.1.0",
     "chart.js": "^3.8.0",

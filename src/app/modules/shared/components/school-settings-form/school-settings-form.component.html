@@ -1,81 +1,100 @@
-<ion-modal [trigger]="trigger" backdropDismiss="false" class="modal-fullscreen">
-    <ng-template>
-        <ion-header>
-            <ion-toolbar color="primary">
-                <ion-title>NEW SCHOOL SETTINGS</ion-title>
-                <ion-buttons slot="end" class="ion-margin-end">
-                    <ion-button (click)="closeSchoolSettingsModal()" fill="solid" color="danger">
-                        <span title="CANCEL">
-                            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
-                        </span>
-                    </ion-button>
-                </ion-buttons>
-            </ion-toolbar>
-        </ion-header>
-        <ion-content fullscreen>
-            <ion-grid fixed>
-                <ion-row>
-                    <ion-col size-lg="6" size="12" offset-lg="3">
-                        <form [formGroup]="school_setting_form" (ngSubmit)="createSchoolSetting()">
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-title>{{ school_setting? 'UPDATE' : 'NEW' }} SCHOOL SETTINGS</ion-title>
+        <ion-buttons slot="end" class="ion-margin-end">
+            <ion-button (click)="closeSchoolSettingsModal()" fill="solid" color="danger">
+                <span title="CANCEL">
+                    <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+                </span>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+<ion-content fullscreen>
+    <ion-grid fixed>
+        <ion-row>
+            <ion-col size="12">
+                <form [formGroup]="school_setting_form" (ngSubmit)="submitSchoolSetting()">
 
-                            <ion-list>
-                                <ion-item-group>
-                                    <ion-item-divider>
-                                        <ion-label>School Setting</ion-label>
-                                    </ion-item-divider>
+                    <ion-list>
+                        <ion-item-group>
+                            <ion-item-divider>
+                                <ion-label>School Setting</ion-label>
+                            </ion-item-divider>
 
-                                    <ion-item>
-                                        <ion-label position="fixed" class="w-50">Academic Year</ion-label>
-                                        <ion-input type="text" placeholder="e.g. 2022-2023" class="ion-text-end"
-                                            formControlName="academic_year">
-                                        </ion-input>
-                                    </ion-item>
-                                    <ion-item>
-                                        <ion-label position="fixed" class="w-50">Term</ion-label>
-                                        <ion-select interface="popover" placeholder="**Select**" formControlName="term"
-                                            class="ion-text-end w-50">
-                                            <ion-select-option *ngFor="let term of terms" [value]="term.id"
-                                                class="ion-text-end">
-                                                {{ term.code }}
-                                            </ion-select-option>
-                                        </ion-select>
-                                    </ion-item>
-                                    <app-date-picker date_picker_id="enroll_start" placeholder="mm-dd-yyyy HH:mm:ss"
-                                        presentation="date-time" label="Enrollment Start Date & Time"
-                                        popover_vertical_offset="-300px"
-                                        [dateFormControl]="school_setting_form.controls.enrollment_start_date"
-                                        label_position="fixed">
-                                    </app-date-picker>
-                                    <app-date-picker date_picker_id="enroll_end" placeholder="mm-dd-yyyy HH:mm:ss"
-                                        presentation="date-time" label="Enrollment End Date & Time"
-                                        popover_vertical_offset="-350px"
-                                        [dateFormControl]="school_setting_form.controls.enrollment_end_date"
-                                        label_position="fixed">
-                                    </app-date-picker>
-                                    <app-date-picker date_picker_id="encode_start" placeholder="mm-dd-yyyy HH:mm:ss"
-                                        presentation="date-time" label="Encoding Start Date & Time"
-                                        popover_vertical_offset="-350px"
-                                        [dateFormControl]="school_setting_form.controls.encoding_start_date"
-                                        label_position="fixed">
-                                    </app-date-picker>
-                                    <app-date-picker date_picker_id="encode_end" placeholder="mm-dd-yyyy HH:mm:ss"
-                                        presentation="date-time" label="Encoding Start Date & Time"
-                                        popover_vertical_offset="-350px"
-                                        [dateFormControl]="school_setting_form.controls.encoding_end_date"
-                                        label="Encoding End Date & Time" popover_vertical_offset="-350px"
-                                        label_position="fixed">
-                                    </app-date-picker>
-                                    <ion-button type="submit" expand="block" class="ion-margin-vertical"
-                                        [disabled]="!school_setting_form.valid">
-                                        Create School Setting
-                                    </ion-button>
-                                </ion-item-group>
-                            </ion-list>
-                        </form>
+                            <ion-item>
+                                <ion-label position="fixed" class="w-50">Academic Year</ion-label>
+                                <ion-input type="text" placeholder="e.g. 2022-2023" class="ion-text-end"
+                                    formControlName="academic_year">
+                                </ion-input>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label position="fixed" class="w-50">Term</ion-label>
+                                <ion-select interface="popover" placeholder="**Select**" formControlName="term"
+                                    class="ion-text-end w-50">
+                                    <ion-select-option *ngFor="let term of terms" [value]="term.id"
+                                        class="ion-text-end">
+                                        {{ term.code }}
+                                    </ion-select-option>
+                                </ion-select>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label position="fixed" class="ion-text-wrap">Enrollment Start</ion-label>
+                                <ion-datetime-button slot="end" datetime="es_date">
+                                </ion-datetime-button>
+                                <ion-popover show-backdrop="false" [keepContentsMounted]="true">
+                                    <ng-template>
+                                        <ion-datetime [presentation]="'date-time'" locale="en-US"
+                                            formControlName="enrollment_start_date" id="es_date">
+                                        </ion-datetime>
+                                    </ng-template>
+                                </ion-popover>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label position="fixed" class="ion-text-wrap">Enrollment End</ion-label>
+                                <ion-datetime-button slot="end" datetime="ee_date">
+                                </ion-datetime-button>
+                                <ion-popover show-backdrop="false" [keepContentsMounted]="true">
+                                    <ng-template>
+                                        <ion-datetime [presentation]="'date-time'" locale="en-US"
+                                            formControlName="enrollment_end_date" id="ee_date">
+                                        </ion-datetime>
+                                    </ng-template>
+                                </ion-popover>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label position="fixed" class="ion-text-wrap">Encoding Start</ion-label>
+                                <ion-datetime-button slot="end" datetime="ecs_date">
+                                </ion-datetime-button>
+                                <ion-popover show-backdrop="false" [keepContentsMounted]="true">
+                                    <ng-template>
+                                        <ion-datetime [presentation]="'date-time'" locale="en-US"
+                                            formControlName="encoding_start_date" id="ecs_date">
+                                        </ion-datetime>
+                                    </ng-template>
+                                </ion-popover>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label position="fixed" class="ion-text-wrap">Encoding End</ion-label>
+                                <ion-datetime-button slot="end" datetime="ees_date">
+                                </ion-datetime-button>
+                                <ion-popover show-backdrop="false" [keepContentsMounted]="true">
+                                    <ng-template>
+                                        <ion-datetime [presentation]="'date-time'" locale="en-US"
+                                            formControlName="encoding_end_date" id="ees_date">
+                                        </ion-datetime>
+                                    </ng-template>
+                                </ion-popover>
+                            </ion-item>
+                            <ion-button type="submit" expand="block" class="ion-margin-vertical"
+                                [disabled]="!school_setting_form.valid">
+                                {{ school_setting? 'UPDATE' : 'CREATE' }} SCHOOL SETTING
+                            </ion-button>
+                        </ion-item-group>
+                    </ion-list>
+                </form>
 
-                    </ion-col>
-                </ion-row>
-            </ion-grid>
-        </ion-content>
-    </ng-template>
-</ion-modal>
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+</ion-content>

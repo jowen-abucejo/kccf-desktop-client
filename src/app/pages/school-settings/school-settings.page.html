@@ -4,26 +4,30 @@
             <ion-menu-button></ion-menu-button>
         </ion-buttons>
         <ion-title>SCHOOL SETTINGS</ion-title>
+        <ion-searchbar placeholder="Search by academic year" animated="true" slot="secondary" color="light"
+            (keyup.enter)="filterSettings()" [(ngModel)]="table_data_status.search" debounce="0"
+            [disabled]="isSearching"></ion-searchbar>
     </ion-toolbar>
 </ion-header>
 <ion-header>
     <ion-toolbar>
-        <ion-segment [(ngModel)]="segment_value" style="max-width: 70%" (ionChange)="changeView($event)">
+        <ion-segment [(ngModel)]="filters.settings_status" style="max-width: 70%" (ionChange)="filterSettings()">
             <ion-segment-button value="ALL" layout="icon-start">
-                <ion-label>ALL STUDENTS</ion-label>
+                <ion-label>ALL</ion-label>
                 <ion-icon name="list-outline"></ion-icon>
             </ion-segment-button>
-            <ion-segment-button value="ENROLLED" layout="icon-start">
-                <ion-label>ENROLLED</ion-label>
+            <ion-segment-button value="OPEN_ENROLL" layout="icon-start">
+                <ion-label>OPEN ENROLLMENT</ion-label>
                 <ion-icon name="checkmark-done-outline"></ion-icon>
             </ion-segment-button>
-            <ion-segment-button value="ENLISTED" layout="icon-start">
-                <ion-label>ENLISTED</ion-label>
-                <ion-icon name="alert-outline"></ion-icon>
+            <ion-segment-button value="OPEN_ENCODE" layout="icon-start">
+                <ion-label>OPEN ENCODING</ion-label>
+                <ion-icon name="checkmark-outline"></ion-icon>
             </ion-segment-button>
         </ion-segment>
         <ion-buttons slot="end" style="margin-right: 65px">
-            <ion-button id="open-new-settings" expand="block" color="primary" fill="outline">
+            <ion-button id="open-new-settings" expand="block" color="primary" fill="outline"
+                (click)="showSchoolSettingForm()">
                 <ion-icon name="create-outline" slot="start"></ion-icon>
                 New Settings
             </ion-button>
@@ -31,8 +35,6 @@
     </ion-toolbar>
 </ion-header>
 <ion-content scrollY="false" class="ion-padding">
-    <app-school-settings-form trigger="open-new-settings" [terms]="terms"></app-school-settings-form>
-
     <ion-fab vertical="top" horizontal="end" edge slot="fixed" activated>
         <ion-fab-button style="
 				border: 2px solid var(--ion-color-warning);
@@ -41,36 +43,37 @@
             <ion-icon name="settings"></ion-icon>
         </ion-fab-button>
         <ion-fab-list side="bottom">
-            <ion-fab-button title="Hide/Show Columns" [id]="table_name" (click)="showColVisMenu($event)">
+            <ion-fab-button title="Hide/Show Columns" [id]="table_name+'_col_vis'" (click)="showColVisMenu($event)">
                 <ion-icon name="eye-off-outline"></ion-icon>
             </ion-fab-button>
-            <ion-fab-button title="Export Records" (click)="popUpMenu($event)">
+            <ion-popover [trigger]="table_name+'_col_vis'" triggerAction="click" side="left" alignment="center"
+                mode="ios" class="custom-popover">
+                >
+                <app-columns-visibility *ngIf="table_columns.length > 0" [columns]="table_columns">
+                </app-columns-visibility>
+            </ion-popover>
+            <ion-fab-button title="Export Records" [id]="table_name+'_export'" (click)="showExportMenu($event)">
                 <ion-icon name="download-outline"></ion-icon>
             </ion-fab-button>
+            <ion-popover [trigger]="table_name+'_export'" triggerAction="click" side="left" alignment="center"
+                mode="ios" class="custom-popover">
+                >
+                <app-table-export *ngIf="buttons.length > 0" [buttons]="buttons"></app-table-export>
+            </ion-popover>
             <ion-fab-button title="Export Settings" (click)="popUpMenu($event)">
                 <ion-icon name="options-outline"></ion-icon>
             </ion-fab-button>
         </ion-fab-list>
-        <ion-popover [trigger]="table_name" triggerAction="click" side="left" alignment="center" mode="ios"
-            class="custom-popover">
-            >
-            <app-columns-visibility *ngIf="table_columns.length > 0" [columns]="table_columns"></app-columns-visibility>
-        </ion-popover>
     </ion-fab>
 
     <ion-content id="export_content_id1" scrollX="true" #tableContent>
-        <!-- <div *ngIf="!isDataLoaded" style="width: 100%;height: 100%;display: flex;flex-direction: column;"
-            class="ion-align-items-center ion-justify-content-center">
-            <ion-spinner name="bubbles" color="primary" class="ion-align-self-center"></ion-spinner>
-            <span class="ion-padding-top">Please wait...</span>
-        </div> -->
         <table datatable [dtOptions]="dtOptions" class="table table-hover table-striped table-bordered"
             style="width: 100%">
         </table>
-        <!-- <ion-infinite-scroll threshold="2%" (ionInfinite)="loadData($event)"
-            *ngIf="isTicketsLoaded && !isDateFilterApplied">
+        <ion-infinite-scroll threshold="2%" (ionInfinite)="loadMoreData($event)">
+            <!-- *ngIf="isTicketsLoaded && !isDateFilterApplied"> -->
             <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Loading more data...">
             </ion-infinite-scroll-content>
-        </ion-infinite-scroll> -->
+        </ion-infinite-scroll>
     </ion-content>
 </ion-content>

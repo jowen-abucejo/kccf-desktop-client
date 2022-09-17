@@ -1,0 +1,27 @@
+<ion-content class="ion-padding">
+    <ion-card-header class="ion-no-padding ion-padding-horizontal ion-padding-top">
+        <ion-card-title style="font-size: 1rem;">Filter Records</ion-card-title>
+    </ion-card-header>
+    <ion-card-content class="ion-no-padding ion-padding-horizontal">
+        <ion-accordion-group class="ion-margin-top">
+            <ion-accordion *ngFor="let category of categories;index as category_index">
+                <ion-item slot="header" color="light">
+                    <ion-label>{{ category.name }}</ion-label>
+                </ion-item>
+                <div slot="content">
+                    <ion-list mode="md">
+                        <ion-item *ngFor="let item of category.items">
+                            <ion-label class="ion-text-wrap">{{ item.code??item.type }}</ion-label>
+                            <ion-toggle (ionChange)="updatePendingFilters(category_index, item.id)"
+                                checked="{{ active_filters[categories[category_index].filter_key].includes(item.id) }}"
+                                slot="end" [enableOnOffLabels]="true"></ion-toggle>
+                        </ion-item>
+                    </ion-list>
+                </div>
+            </ion-accordion>
+        </ion-accordion-group>
+        <ion-button (click)="submitNewFilters()" expand="block" fill="solid" class="ion-margin-vertical">
+            Apply Filters
+        </ion-button>
+    </ion-card-content>
+</ion-content>

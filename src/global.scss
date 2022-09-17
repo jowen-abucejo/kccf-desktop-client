@@ -118,14 +118,14 @@
 table.dataTable {
 	margin-top: 0 !important;
 }
-table > thead:not(tr > th.sorting) {
+table thead:not(tr > th.sorting) {
 	position: sticky;
 	top: 0;
 	left: 0;
 	right: 0;
 	z-index: 9999;
 }
-table > thead > tr > th.sorting_disabled {
+table thead > tr > th.sorting_disabled {
 	background-color: var(--ion-color-primary);
 	color: var(--ion-color-primary-contrast);
 	vertical-align: middle !important;
@@ -135,7 +135,7 @@ table > thead > tr > th.sorting_disabled {
 table > tbody > tr {
 	color: var(--ion-color-light-contrast);
 }
-table > thead > tr > th.sorting,
+table thead > tr > th.sorting,
 table > tfoot > tr > th.sorting {
 	background-color: var(--ion-color-primary);
 	color: var(--ion-color-primary-contrast);
@@ -275,7 +275,7 @@ app-date-picker {
 
 /* custom classes */
 .custom-popover {
-	--width: 250px;
+	--width: 275px;
 }
 
 .custom-popover::part(content) {
@@ -288,6 +288,28 @@ app-date-picker {
 	--max-height: 700px;
 }
 
-.select-interface-option ion-label.sc-ion-label-md-h {
+.modal-max-width {
+	--width: 400px;
+	--height: 90%;
+	--max-height: 700px;
+}
+
+.select-interface-option ion-label.sc-ion-label-md-h,
+.select-interface-option div.alert-checkbox-label {
 	white-space: normal;
+}
+
+.alert-tappable.sc-ion-alert-md {
+	height: initial !important;
+	contain: initial !important;
+}
+
+.custom-select-alert {
+	max-width: none;
+}
+
+.custom-select-alert .alert-wrapper {
+	min-width: 380px;
+	max-width: 50%;
+	width: 50%;
 }

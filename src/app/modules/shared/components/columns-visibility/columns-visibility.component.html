@@ -1,9 +1,14 @@
 <ion-content class="ion-padding">
-    <ion-list *ngIf="columns.length > 0" mode="md">
-        <ion-list-header><b> Hide/Show Columns </b> </ion-list-header>
-        <ion-item *ngFor="let column of columns">
-            <ion-label class="ion-text-wrap">{{ column.label }}</ion-label>
-            <ion-toggle (ionChange)="column.callback()" checked="{{ column.checked }}" slot="end"></ion-toggle>
-        </ion-item>
-    </ion-list>
+    <ion-card-header class="ion-no-padding ion-padding-horizontal ion-padding-top">
+        <ion-card-title style="font-size: 1rem;">Hide/Show Columns</ion-card-title>
+    </ion-card-header>
+    <ion-card-content class="ion-no-padding ion-padding-horizontal">
+        <ion-list *ngIf="columns.length > 0" mode="md" class="ion-margin-top">
+            <ion-item *ngFor="let column of columns">
+                <ion-label class="ion-text-wrap">{{ column.label }}</ion-label>
+                <ion-toggle (ionChange)="column.callback()" checked="{{ column.checked }}" slot="end"
+                    [enableOnOffLabels]="true"></ion-toggle>
+            </ion-item>
+        </ion-list>
+    </ion-card-content>
 </ion-content>

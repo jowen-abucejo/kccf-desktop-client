@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
 import { FormGroup } from "@angular/forms";
+import { Student } from "src/app/interfaces/student";
 import {
 	SiblingFieldEventOptions,
 	SlideTriggerOptions,
@@ -12,6 +13,7 @@ import {
 })
 export class FamilyInfoPageComponent implements OnInit {
 	@Input() familyInfoFormGroup: FormGroup;
+	@Input() student: Student = null;
 	@Output() triggerSlide: EventEmitter<SlideTriggerOptions> =
 		new EventEmitter<SlideTriggerOptions>();
 
