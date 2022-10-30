@@ -1,3 +1,5 @@
+import { OfferSubject, ProgramSubject } from "./subject-pivot";
+
 export interface CourseSubject {
 	code: string;
 	comments: string | null;
@@ -6,16 +8,16 @@ export interface CourseSubject {
 	deleted_at: string | null;
 	deleted_by: number | null;
 	description: string;
+	equivalent_newer_subjects?: CourseSubject[];
+	equivalent_previous_subjects?: CourseSubject[];
 	id: number;
 	lab_units: number;
 	lec_units: number;
-	offer_subjects_count?: number;
-	pivot?: {
-		level_id;
-		program_id: number;
-		subject_id: number;
-		term_id: number;
-	};
+	school_settings_count?: number;
+	pivot?: OfferSubject | ProgramSubject;
+	pre_requisite_for_subjects_count?: number;
+	pre_requisite_subjects?: CourseSubject[];
+	programs_count?: number;
 	updated_at: string;
 	updated_by: number;
 }

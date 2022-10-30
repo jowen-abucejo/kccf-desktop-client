@@ -292,6 +292,9 @@ app-date-picker {
 	--width: 400px;
 	--height: 90%;
 	--max-height: 700px;
+	&::part(content) {
+		box-shadow: 0px 0px 20px 5px rgb(0 0 0 / 50%);
+	}
 }
 
 .select-interface-option ion-label.sc-ion-label-md-h,
@@ -308,8 +311,26 @@ app-date-picker {
 	max-width: none;
 }
 
-.custom-select-alert .alert-wrapper {
+.custom-select-alert .alert-wrapper,
+.custom-select-alert .modal-wrapper {
 	min-width: 380px;
 	max-width: 50%;
 	width: 50%;
+}
+
+.mt-7p {
+	margin-top: 7px;
+}
+
+app-searchable-select {
+	width: 100%;
+	display: flex;
+}
+
+ion-modal.custom-select-alert {
+	--box-shadow: 0px 0px 20px 5px rgb(0 0 0 / 50%) !important;
+}
+
+ion-icon.custom-select-arrow-color {
+	color: #6e6e6e;
 }

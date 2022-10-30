@@ -1,11 +1,11 @@
 <ion-content>
     <ion-card-header class="ion-no-padding ion-padding-horizontal ion-padding-top">
-        <ion-card-title>Select Action</ion-card-title>
+        <ion-card-title>{{ title }}</ion-card-title>
         <ion-card-subtitle><i>{{ subtitle }}</i></ion-card-subtitle>
     </ion-card-header>
     <ion-card-content class="ion-no-padding ion-padding-horizontal">
         <ion-list *ngIf="options.length > 0" mode="md">
-            <ion-item *ngFor="let option of options" button (click)="option.callback()" lines="full">
+            <ion-item *ngFor="let option of options" button (click)="option.callback($event)" lines="full">
                 <ion-icon *ngIf="option.icon_name" slot="start" [name]="option.icon_name"></ion-icon>
                 <ion-label class="ion-text-wrap">{{ option.label }}</ion-label>
             </ion-item>

@@ -105,7 +105,7 @@ export class ProgramsPage
 		columns: [
 			{ title: "ID", data: "id" },
 			{ title: "Code", data: "code" },
-			{ title: "Description", data: "description" },
+			{ title: "Description", data: "description", width: "50%" },
 			{ title: "Education Level", data: "program_level.description" },
 			{
 				title: "Status",
@@ -283,17 +283,29 @@ export class ProgramsPage
 		private alertController: AlertController
 	) {}
 
-	async ionViewWillEnter(): Promise<void> {}
+	async ionViewWillEnter(): Promise<void> {
+		if (this.levels.length === 0) this.getLevels();
+		if (this.program_levels.length === 0)
+			this.getProgramLevels().finally(() => {
+				this.filters.program_levels = this.program_levels.map(
+					(p) => p.id
+				);
+			});
+		if (this.subjects.length === 0) this.getSubjects();
+	}
 
 	async ionViewWillLeave(): Promise<void> {
+		this.subjects = [];
 		// await this.saveTableSettings();
 	}
 
 	async ngOnInit() {
 		// await this.loadTableSettings();
 		this.getLevels();
-		this.getProgramLevels();
-		this.getSubjects().then(async () => {
+		this.getProgramLevels().finally(() => {
+			this.filters.program_levels = this.program_levels.map((p) => p.id);
+		});
+		this.getSubjects().finally(async () => {
 			await this.loadMoreData().then(() => this.checkForScrollbar());
 		});
 	}
@@ -327,30 +339,61 @@ export class ProgramsPage
 		return;
 	}
 
+	async confirmDelete(id: number, row_index: number) {
+		const confirm_alert = await this.alertController.create({
+			header: "Confirm Delete",
+			subHeader: "Are you sure to permanently delete curriculum?",
+			buttons: [
+				"Cancel",
+				{
+					text: "Delete",
+					handler: (v) => this.deleteProgram(id, row_index),
+				},
+			],
+		});
+		await confirm_alert.present();
+	}
+
 	private async createContextMenu(e: any, program: Course, index: number) {
+		let options = [
+			{
+				label: "View Curriculum",
+				icon_name: "eye-outline",
+				callback: () => {
+					this.viewCurriculum(program, index);
+				},
+			},
+			{
+				label: program.deleted_at ? "Activate" : "Deactivate",
+				icon_name: program.deleted_at
+					? "checkmark-circle-outline"
+					: "close-circle-outline",
+				callback: () => {
+					this.toggleStatus(program, index);
+				},
+			},
+		];
+
+		if (
+			program.enrollment_histories_count == 0 &&
+			program.students_count == 0 &&
+			program.student_registrations_count == 0
+		) {
+			options.push({
+				label: "Delete",
+				icon_name: "trash-outline",
+				callback: () => {
+					this.confirmDelete(program.id, index);
+				},
+			});
+		}
+
 		const menu = await this.popoverController.create({
 			component: RowContextMenuComponent,
 			event: e.originalEvent,
 			componentProps: {
 				subtitle: "Program Code: " + program.code,
-				options: [
-					{
-						label: "View Curriculum",
-						icon_name: "eye-outline",
-						callback: () => {
-							this.viewCurriculum(program, index);
-						},
-					},
-					{
-						label: program.deleted_at ? "Activate" : "Deactivate",
-						icon_name: program.deleted_at
-							? "checkmark-circle-outline"
-							: "close-circle-outline",
-						callback: () => {
-							this.toggleStatus(program, index);
-						},
-					},
-				],
+				options: options,
 			},
 			backdropDismiss: true,
 			showBackdrop: false,
@@ -358,6 +401,39 @@ export class ProgramsPage
 		return await menu.present();
 	}
 
+	async deleteProgram(id: number, row_index: number) {
+		const loading = await this.loadingController.create({
+			spinner: "bubbles",
+			backdropDismiss: false,
+		});
+		await loading.present();
+		const result = await this.apiService
+			.deleteProgram(id, true, false)
+			.catch(async (res: HttpErrorResponse) => {
+				const alert = await this.alertController.create({
+					header: res.error.error ?? "Unable to Delete Curriculum!",
+					message: res.error.message,
+					buttons: ["OK"],
+				});
+				await alert.present();
+				return null;
+			})
+			.finally(async () => {
+				await loading.dismiss();
+			});
+		if (result) {
+			const alert = await this.alertController.create({
+				header: "Curriculum Deleted Successfully!",
+				buttons: ["OK"],
+			});
+			await alert.present();
+			const dtInstance = await this.dataTableElement.dtInstance;
+			const data_index = dtInstance.rows().indexes()[row_index];
+			dtInstance.row(data_index).remove();
+			dtInstance.rows().draw();
+			this.popoverController.dismiss();
+		}
+	}
 	async exportAs(button_index: number) {
 		const dtInstance = <any>await this.dataTableElement.dtInstance;
 		dtInstance.table().button(button_index).trigger();
@@ -378,7 +454,10 @@ export class ProgramsPage
 				search,
 				withTrashed: 1,
 				program_status: this.filters.program_status,
-				"pl[]": this.filters.program_levels,
+				"pl[]":
+					this.filters.program_levels.length > 0
+						? this.filters.program_levels
+						: [0],
 			})
 			.catch((er) => {
 				return null;
@@ -399,7 +478,7 @@ export class ProgramsPage
 		this.table_data_status.last_page = 2;
 		this.table_data_status.limit = 15;
 		this.table_data_status.order = "DESC";
-		await this.loadMoreData().then(() => this.checkForScrollbar());
+		await this.loadMoreData(event).then(() => this.checkForScrollbar());
 	}
 
 	/**
@@ -420,8 +499,6 @@ export class ProgramsPage
 			.catch((er) => {
 				return [];
 			});
-
-		this.filters.program_levels = this.program_levels.map((p) => p.id);
 	}
 
 	/**
@@ -429,7 +506,7 @@ export class ProgramsPage
 	 */
 	async getSubjects() {
 		this.subjects = await this.apiService
-			.getSubjects(true, { withTrashed: 1 })
+			.getSubjects(true, { withTrashed: 0 })
 			.catch((er) => {
 				return [];
 			});
@@ -557,12 +634,17 @@ export class ProgramsPage
 					this.filters.program_levels.includes(
 						res.new_program.program_level_id
 					) &&
-					(res.new_program.code.indexOf(
-						this.table_data_status.search
-					) > -1 ||
-						res.new_program.description.indexOf(
-							this.table_data_status.search
-						) > -1)
+					(this.table_data_status.search == "" ||
+						res.new_program.code
+							.toLowerCase()
+							.indexOf(
+								this.table_data_status.search.toLowerCase()
+							) > -1 ||
+						res.new_program.description
+							.toLowerCase()
+							.indexOf(
+								this.table_data_status.search.toLowerCase()
+							) > -1)
 				) {
 					//update row data and redraw
 					const data_index = dtInstance.rows().indexes()[

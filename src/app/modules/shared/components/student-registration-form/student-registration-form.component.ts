@@ -75,6 +75,7 @@ export class StudentRegistrationFormComponent implements OnInit {
 		new_student: Student;
 		row_index: number;
 	}>();
+	hide_college_background: boolean = true;
 	registration: FormGroup;
 	selection_levels: Level[] = [];
 	private validating_email: boolean = false;
@@ -85,6 +86,7 @@ export class StudentRegistrationFormComponent implements OnInit {
 		pagination: { type: "fraction" },
 		allowTouchMove: false,
 	};
+	display_year_term: string;
 
 	constructor(
 		private apiService: ApiService,
@@ -96,6 +98,16 @@ export class StudentRegistrationFormComponent implements OnInit {
 
 	@ViewChild("swiper", { static: false }) swiper: SwiperComponent;
 	async ngOnInit() {
+		if (this.student) {
+			const admission_school_setting = this.active_enrollments.find(
+				(s) => s.id == this.student.registration.school_setting.id
+			);
+			this.display_year_term =
+				admission_school_setting.academic_year +
+				" (" +
+				admission_school_setting.term.code +
+				")";
+		}
 		if (this.programs.length === 0) this.getPrograms();
 		if (this.levels.length === 0) this.getLevels();
 		if (this.student_types.length === 0) {
@@ -212,7 +224,7 @@ export class StudentRegistrationFormComponent implements OnInit {
 				],
 				registration_date: read
 					? [
-							new Date(read.created_at).toJSON(),
+							new Date(this.student.created_at).toJSON(),
 							[Validators.required],
 					  ]
 					: [""],
@@ -302,18 +314,18 @@ export class StudentRegistrationFormComponent implements OnInit {
 				],
 				same_address: [false],
 				address: this.formBuilder.group({
-					line_1: [read ? read.guardians[0].address.line1 : ""],
-					line_2: [read ? read.guardians[0].address.line2 : ""],
+					line_1: [read ? read.guardians[0].address?.line1 : ""],
+					line_2: [read ? read.guardians[0].address?.line2 : ""],
 					city: [
-						read ? read.guardians[0].address.city : "",
+						read ? read.guardians[0].address?.city : "",
 						Validators.required,
 					],
 					province: [
-						read ? read.guardians[0].address.province : "",
+						read ? read.guardians[0].address?.province : "",
 						Validators.required,
 					],
 					zip: [
-						read ? read.guardians[0].address.zip : "",
+						read ? read.guardians[0].address?.zip : "",
 						[
 							Validators.required,
 							Validators.pattern(regex_tests.zip),
@@ -363,18 +375,18 @@ export class StudentRegistrationFormComponent implements OnInit {
 				],
 				same_address: [false],
 				address: this.formBuilder.group({
-					line_1: [read ? read.guardians[1].address.line1 : ""],
-					line_2: [read ? read.guardians[1].address.line2 : ""],
+					line_1: [read ? read.guardians[1].address?.line1 : ""],
+					line_2: [read ? read.guardians[1].address?.line2 : ""],
 					city: [
-						read ? read.guardians[1].address.city : "",
+						read ? read.guardians[1].address?.city : "",
 						Validators.required,
 					],
 					province: [
-						read ? read.guardians[1].address.province : "",
+						read ? read.guardians[1].address?.province : "",
 						Validators.required,
 					],
 					zip: [
-						read ? read.guardians[1].address.zip : "",
+						read ? read.guardians[1].address?.zip : "",
 						[
 							Validators.required,
 							Validators.pattern(regex_tests.zip),
@@ -629,6 +641,22 @@ export class StudentRegistrationFormComponent implements OnInit {
 					read.siblings[index]
 				);
 			}
+
+			if (this.registration.get("father_info.is_deceased").value) {
+				this.registration.get("father_info.occupation").disable();
+				this.registration.get("father_info.address").disable();
+				this.registration.get("father_info.email").disable();
+				this.registration.get("father_info.contact_number").disable();
+				this.registration.get("father_info.same_address").disable();
+			}
+
+			if (this.registration.get("mother_info.is_deceased").value) {
+				this.registration.get("mother_info.occupation").disable();
+				this.registration.get("mother_info.address").disable();
+				this.registration.get("mother_info.email").disable();
+				this.registration.get("mother_info.contact_number").disable();
+				this.registration.get("mother_info.same_address").disable();
+			}
 		}
 
 		// for (let index = 0; index < education.length; index++) {
@@ -743,8 +771,8 @@ export class StudentRegistrationFormComponent implements OnInit {
 			const alert = await this.alertController.create({
 				header:
 					this.row_index > -1
-						? "Registration Update Success"
-						: "Student Registration Success",
+						? "Admission Update Success"
+						: "Student Admission Success",
 				buttons: ["OK"],
 			});
 			await alert.present();
@@ -820,8 +848,8 @@ export class StudentRegistrationFormComponent implements OnInit {
 
 		//Enable preschool education background fields if student is higher level or preschool transferee
 		if (
-			selected_program.program_level_id < 5 ||
-			(selected_program.program_level_id == 5 &&
+			selected_program.program_level_id > 1 ||
+			(selected_program.program_level_id == 1 &&
 				selected_student_type.type != "NEW")
 		) {
 			this.registration.controls.education.get("preschool").enable();
@@ -829,8 +857,8 @@ export class StudentRegistrationFormComponent implements OnInit {
 
 		//Enable grade school education background fields if student is higher level or grade school transferee
 		if (
-			selected_program.program_level_id < 4 ||
-			(selected_program.program_level_id == 4 &&
+			selected_program.program_level_id > 2 ||
+			(selected_program.program_level_id == 2 &&
 				selected_student_type.type != "NEW")
 		) {
 			this.registration.controls.education.get("grade_school").enable();
@@ -838,7 +866,7 @@ export class StudentRegistrationFormComponent implements OnInit {
 
 		//Enable junior high school education background fields if student is higher level or junior high school transferee
 		if (
-			selected_program.program_level_id < 3 ||
+			selected_program.program_level_id > 3 ||
 			(selected_program.program_level_id == 3 &&
 				selected_student_type.type != "NEW")
 		) {
@@ -848,20 +876,18 @@ export class StudentRegistrationFormComponent implements OnInit {
 		//Enable senior high school education background fields if student is higher level or senior high school transferee
 
 		if (
-			selected_program.program_level_id < 2 ||
-			(selected_program.program_level_id == 2 &&
+			selected_program.program_level_id > 4 ||
+			(selected_program.program_level_id == 4 &&
 				selected_student_type.type != "NEW")
 		) {
 			this.registration.controls.education.get("senior_high").enable();
 		}
 
 		//Enable college education background fields if student is college transferee
-		if (
-			selected_program.program_level_id == 1 &&
-			(selected_student_type.type != "NEW" ||
-				this.registration.controls.admission_details.get("level_id")
-					.value != 4)
-		) {
+		this.hide_college_background =
+			selected_program.program_level_id == 5 &&
+			selected_student_type.type == "NEW";
+		if (!this.hide_college_background) {
 			this.registration.controls.education.get("college").enable();
 		}
 	}

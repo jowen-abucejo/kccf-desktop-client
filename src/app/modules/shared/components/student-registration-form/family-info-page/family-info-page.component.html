@@ -27,8 +27,8 @@
             </ion-list>
         </ion-col>
         <ion-col size-lg="6" size="12">
-            <ion-list formGroupName="religion_info">
-                <ion-item-group>
+            <ion-list>
+                <ion-item-group formGroupName="religion_info">
                     <ion-item-divider>
                         <ion-label>Religious Information</ion-label>
                     </ion-item-divider>
@@ -56,72 +56,63 @@
                         <ion-label>Siblings</ion-label>
                     </ion-item-divider>
                 </ion-col>
-                <ion-col size="12" *ngFor="let sibling of familyInfoFormGroup.controls.siblings.controls; index as i"
-                    style="border-bottom: 1px solid var(--ion-color-primary);">
-                    <ion-row [formGroup]="sibling">
-                        <!-- <ion-col size-lg="1" size="1">
-                            <ion-button (click)="addSiblingField(true, i)" fill="outline" color="danger" size="small">
-                                <ion-icon slot="icon-only" name="close"></ion-icon>
-                            </ion-button>
-                        </ion-col> -->
-
-                        <ion-col size-lg="4" size="12">
-                            <ion-item>
-                                <ion-label position="floating">First Name</ion-label>
-                                <ion-input type="text" placeholder="First Name" formControlName="first_name">
-                                </ion-input>
-                                <ion-buttons slot="start" style="margin-top: 6px;">
-                                    <ion-button (click)="addSiblingField(true, i)" fill="outline" color="danger"
-                                        size="small">
-                                        <ion-icon slot="icon-only" name="close"></ion-icon>
-                                    </ion-button>
-                                </ion-buttons>
-                            </ion-item>
-                        </ion-col>
-                        <ion-col size-lg="4" size="12">
-                            <ion-item>
-                                <ion-label position="floating">Last Name</ion-label>
-                                <ion-input type="text" placeholder="Last Name" formControlName="last_name"></ion-input>
-                            </ion-item>
-                        </ion-col>
-                        <ion-col size-lg="3" size="12">
-                            <ion-item>
-                                <ion-label position="floating">Middle Name</ion-label>
-                                <ion-input type="text" placeholder="Middle Name" formControlName="middle_name">
-                                </ion-input>
-                            </ion-item>
-                        </ion-col>
-                        <ion-col size-lg="4" size="12">
-                            <ion-item>
-                                <ion-label position="floating">Name Suffix</ion-label>
-                                <ion-input type="text" placeholder="(e.g. 'JR', 'SR', 'III', 'IV', ...)"
-                                    formControlName="name_suffix"></ion-input>
-                            </ion-item>
-                        </ion-col>
-                        <ion-col size-lg="4" size="12">
-                            <ion-item>
-                                <ion-label>Birth Date</ion-label>
-                                <ion-datetime-button slot="end" [datetime]="'birth_date'+i">
-                                </ion-datetime-button>
-                                <ion-popover show-backdrop="false" [keepContentsMounted]="true">
-                                    <ng-template>
-                                        <ion-datetime [presentation]="'date'" locale="en-US"
-                                            formControlName="birth_date" [id]="'birth_date'+i" show-clear-button
-                                            show-default-buttons>
-                                        </ion-datetime>
-                                    </ng-template>
-                                </ion-popover>
-                            </ion-item>
-                        </ion-col>
-                    </ion-row>
+                <ion-col size-lg="4" size-md="6" size="12" class="ion-padding"
+                    *ngFor="let sibling of familyInfoFormGroup.controls.siblings.controls; index as i">
+                    <ion-card [formGroup]="sibling" style="border: 1px solid var(--ion-color-primary)">
+                        <ion-card-header>
+                            <ion-card-subtitle>Sibling {{ i+1 }}</ion-card-subtitle>
+                        </ion-card-header>
+                        <ion-card-content>
+                            <ion-list>
+                                <ion-item>
+                                    <ion-label position="floating">First Name</ion-label>
+                                    <ion-input type="text" placeholder="First Name" formControlName="first_name">
+                                    </ion-input>
+                                </ion-item>
+                                <ion-item>
+                                    <ion-label position="floating">Last Name</ion-label>
+                                    <ion-input type="text" placeholder="Last Name" formControlName="last_name">
+                                    </ion-input>
+                                </ion-item>
+                                <ion-item>
+                                    <ion-label position="floating">Middle Name</ion-label>
+                                    <ion-input type="text" placeholder="Middle Name" formControlName="middle_name">
+                                    </ion-input>
+                                </ion-item>
+                                <ion-item>
+                                    <ion-label position="floating">Name Suffix</ion-label>
+                                    <ion-input type="text" placeholder="(e.g. 'JR', 'SR', 'III', 'IV', ...)"
+                                        formControlName="name_suffix"></ion-input>
+                                </ion-item>
+                                <ion-item>
+                                    <ion-label>Birth Date</ion-label>
+                                    <ion-datetime-button slot="end" [datetime]="'birth_date'+i">
+                                    </ion-datetime-button>
+                                    <ion-popover show-backdrop="false" [keepContentsMounted]="true">
+                                        <ng-template>
+                                            <ion-datetime [presentation]="'date'" locale="en-US"
+                                                formControlName="birth_date" [id]="'birth_date'+i" show-clear-button
+                                                show-default-buttons>
+                                            </ion-datetime>
+                                        </ng-template>
+                                    </ion-popover>
+                                </ion-item>
+                                <ion-button (click)="addSiblingField(true, i)" expand="block" fill="outline"
+                                    color="danger">
+                                    Remove
+                                </ion-button>
+                            </ion-list>
+                        </ion-card-content>
+                    </ion-card>
                 </ion-col>
-            </ion-row>
-            <ion-row>
-                <ion-col size="12" class="ion-justify-content-end">
-                    <ion-button (click)="addSiblingField()" fill="outline">
-                        <ion-icon slot="start" name="add"></ion-icon>
-                        Add New Fields
-                    </ion-button>
+                <ion-col size-lg="4" size-md="6" size="12" class="ion-padding">
+                    <ion-card style="height: 432px; display: flex;"
+                        class="ion-align-items-center ion-justify-content-center">
+                        <ion-button (click)="addSiblingField()" fill="outline" color="medium"
+                            style="width:90%; height:90%; font-size: 3rem;">
+                            <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+                        </ion-button>
+                    </ion-card>
                 </ion-col>
             </ion-row>
         </ion-col>
@@ -139,7 +130,7 @@
             <ion-button (click)="submitForm()" fill="solid" color="primary" class="ion-margin-vertical"
                 [disabled]="!familyInfoFormGroup.valid">
                 <ion-icon slot="end" name="arrow-forward"></ion-icon>
-                {{ student? 'UPDATE STUDENT REGISTRATION' : 'REGISTER STUDENT' }}
+                {{ student? 'UPDATE STUDENT ADMISSION' : 'ADMIT STUDENT' }}
             </ion-button>
         </ion-col>
     </ion-row>

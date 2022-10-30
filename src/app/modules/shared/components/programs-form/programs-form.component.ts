@@ -55,7 +55,10 @@ export class ProgramsFormComponent implements OnInit {
 
 	@ViewChild("parentDiv", { static: false }) parentDiv: HTMLElement;
 
+	@ViewChild("swiper", { static: false }) swiper: SwiperComponent;
+
 	curriculum_subjects: CourseSubject[] = [];
+	customAlertOptions: AlertOptions;
 	selectSubjectsForm: FormGroup;
 	dtOptions: any;
 	programForm: FormGroup;
@@ -67,8 +70,6 @@ export class ProgramsFormComponent implements OnInit {
 		allowTouchMove: false,
 	};
 
-	customAlertOptions: AlertOptions;
-
 	constructor(
 		private apiService: ApiService,
 		private formBuilder: FormBuilder,
@@ -78,20 +79,14 @@ export class ProgramsFormComponent implements OnInit {
 		private popoverController: PopoverController
 	) {}
 
-	@ViewChild("swiper", { static: false }) swiper: SwiperComponent;
-
 	async ngOnInit() {
-		this.initializeTable();
 		if (this.levels.length === 0) this.getLevels();
-		if (this.program_levels.length === 0) this.getProgramLevels();
 		if (this.terms.length === 0) this.getTerms();
-		if (this.subjects.length === 0) {
-			this.getSubjects();
-		} else {
-		}
-		if (this.program) {
-			this.getProgramSubjects(this.program.id);
-		}
+		this.initializeTable();
+		if (this.program_levels.length === 0) this.getProgramLevels();
+		if (this.subjects.length === 0) this.getSubjects();
+		if (this.program) this.getCurriculumSubjects(this.program.id);
+
 		this.initializeProgramForm();
 		this.updateAlertOptions();
 
@@ -190,7 +185,7 @@ export class ProgramsFormComponent implements OnInit {
 	 */
 	async getSubjects() {
 		this.subjects = await this.apiService
-			.getSubjects(true, { withTrashed: 1 })
+			.getSubjects(true, { withTrashed: 0 })
 			.catch((er) => {
 				return [];
 			});
@@ -200,10 +195,10 @@ export class ProgramsFormComponent implements OnInit {
 	 * Get all subjects for a program
 	 * @param program_id id of program to get all assigned subjects
 	 */
-	async getProgramSubjects(program_id: number) {
+	async getCurriculumSubjects(program_id: number) {
 		let curriculum_with_subjects: any = await this.apiService
 			.getProgramSubjects(program_id, {
-				withTrashed: 0,
+				withTrashed: 1,
 			})
 			.catch((er) => {
 				return null;
@@ -523,12 +518,12 @@ export class ProgramsFormComponent implements OnInit {
 		const modal = await this.modalController.create({
 			component: SubjectsFormComponent,
 			componentProps: {
+				all_subjects: this.subjects,
 				success_subject: event_emitter,
 				trigger: "",
 			},
 			cssClass: "modal-max-width",
 			backdropDismiss: false,
-			mode: "ios",
 			presentingElement: this.parentDiv,
 			showBackdrop: true,
 		});

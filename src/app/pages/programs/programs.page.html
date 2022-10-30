@@ -11,7 +11,8 @@
 </ion-header>
 <ion-header>
     <ion-toolbar>
-        <ion-segment [(ngModel)]="filters.program_status" style="max-width: 70%" (ionChange)="filterPrograms()">
+        <ion-segment [(ngModel)]="filters.program_status" style="max-width: 70%" (ionChange)="filterPrograms()"
+            [disabled]="isSearching">
             <ion-segment-button value="ALL" layout="icon-start">
                 <ion-label>ALL CURRICULUM</ion-label>
                 <ion-icon name="list-outline"></ion-icon>

@@ -1,4 +1,5 @@
 import { Course } from "./course";
+import { EnrollmentHistory } from "./enrollment-history";
 import { Level } from "./level";
 import { SchoolSetting } from "./school-setting";
 
@@ -7,6 +8,8 @@ export interface Student {
 	created_by: number;
 	deleted_at: string;
 	deleted_by: number;
+	enrollment_histories: EnrollmentHistory[];
+	enrollment_histories_count?: number;
 	id: number;
 	level?: Level;
 	level_id: number;

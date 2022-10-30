@@ -31,14 +31,14 @@ export class GuardianInfoPageComponent implements OnInit {
 			this.guardianInfoFormGroup.controls.occupation.disable();
 			this.guardianInfoFormGroup.controls.address.disable();
 			this.guardianInfoFormGroup.controls.email.disable();
-			this.guardianInfoFormGroup.controls.mobile.disable();
+			this.guardianInfoFormGroup.controls.contact_number.disable();
 			this.guardianInfoFormGroup.controls.same_address.disable();
 			this.guardianInfoFormGroup.controls.same_address.setValue(false);
 		} else {
 			this.guardianInfoFormGroup.controls.occupation.enable();
 			this.guardianInfoFormGroup.controls.address.enable();
 			this.guardianInfoFormGroup.controls.email.enable();
-			this.guardianInfoFormGroup.controls.mobile.enable();
+			this.guardianInfoFormGroup.controls.contact_number.enable();
 			this.guardianInfoFormGroup.controls.same_address.enable();
 		}
 	}

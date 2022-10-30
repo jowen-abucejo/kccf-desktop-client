@@ -14,13 +14,13 @@
                             <ion-radio value="mother" slot="start"></ion-radio>
                         </ion-item>
 
-                        <ion-item style="margin-top: 7px;"
+                        <ion-item class="mt-7p"
                             [disabled]="guardianInfoFormGroup.parent.controls.father_info.controls.is_deceased.value">
                             <ion-label>Set FATHER as Guardian</ion-label>
                             <ion-radio value="father" slot="start"></ion-radio>
                         </ion-item>
 
-                        <ion-item style="margin-top: 7px;">
+                        <ion-item class="mt-7p">
                             <ion-label>Others</ion-label>
                             <ion-radio value="other" slot="start"></ion-radio>
                         </ion-item>
@@ -52,7 +52,7 @@
                             formControlName="name_suffix">
                         </ion-input>
                     </ion-item>
-                    <ion-item>
+                    <ion-item class="mt-7p">
                         <ion-label>{{ targets[target]+'\'s Birth Date' }}</ion-label>
                         <ion-datetime-button slot="end" [datetime]="targets[target]+'_birth_date'">
                         </ion-datetime-button>

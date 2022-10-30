@@ -19,11 +19,14 @@ import {
 } from "@ionic/angular";
 import { DataTableDirective } from "angular-datatables";
 import { Course } from "src/app/interfaces/course";
+import { CourseSubject } from "src/app/interfaces/course-subject";
+import { EnrollmentHistory } from "src/app/interfaces/enrollment-history";
 import { Level } from "src/app/interfaces/level";
 import { SchoolSetting } from "src/app/interfaces/school-setting";
 import { Student } from "src/app/interfaces/student";
 import { StudentType } from "src/app/interfaces/student-type";
 import { TablePage } from "src/app/interfaces/table-page";
+import { EnrollmentFormComponent } from "src/app/modules/shared/components/enrollment-form/enrollment-form.component";
 import { RowContextMenuComponent } from "src/app/modules/shared/components/row-context-menu/row-context-menu.component";
 import { StudentRegistrationFormComponent } from "src/app/modules/shared/components/student-registration-form/student-registration-form.component";
 import { ApiService } from "src/app/services/api.service";
@@ -305,8 +308,11 @@ export class StudentsPage
 	) {}
 
 	async ionViewWillEnter(): Promise<void> {
-		this.getSchoolSettings(true);
-		this.getPrograms(true);
+		if (this.school_settings.length === 0) this.getSchoolSettings(true);
+		if (this.programs.length === 0)
+			this.getPrograms(true).finally(() => {
+				this.filters.programs = this.programs.map((p) => p.id);
+			});
 	}
 
 	async ionViewWillLeave(): Promise<void> {
@@ -317,8 +323,14 @@ export class StudentsPage
 
 	async ngOnInit() {
 		// await this.loadTableSettings();
-		this.getLevels();
-		this.getStudentTypes().then(async () => {
+		this.getLevels().finally(() => {
+			this.filters.levels = this.levels.map((l) => l.id);
+		});
+		await this.getPrograms(true).finally(() => {
+			this.filters.programs = this.programs.map((p) => p.id);
+		});
+		this.getStudentTypes().finally(async () => {
+			this.filters.student_types = this.student_types.map((s) => s.id);
 			await this.loadMoreData();
 		});
 	}
@@ -352,35 +364,116 @@ export class StudentsPage
 		return;
 	}
 
+	async confirmDelete(id: number, row_index: number) {
+		const confirm_alert = await this.alertController.create({
+			header: "Confirm Delete",
+			subHeader: "Are you sure to permanently delete student records?",
+			buttons: [
+				"Cancel",
+				{
+					text: "Delete",
+					handler: (v) => this.deleteStudent(id, row_index),
+				},
+			],
+		});
+		await confirm_alert.present();
+	}
+
 	private async createContextMenu(e: any, student: Student, index: number) {
+		let options = [
+			{
+				label: "View Admission",
+				icon_name: "eye-outline",
+				callback: () => {
+					this.viewProfile(student, index);
+				},
+			},
+			{
+				label: "Enroll Student",
+				icon_name: "log-in-outline",
+				callback: (parent_event: any = null) => {
+					this.showOpenEnrollments(parent_event, student, index);
+				},
+			},
+		];
+
+		if (student.enrollment_histories_count > 0) {
+			//push enrollment histories option
+			options.push({
+				label: "Enrollment History",
+				icon_name: "list-circle-outline",
+				callback: (parent_event: any = null) => {
+					this.showEnrollmentHistories(parent_event, student, index);
+				},
+			});
+		}
+
+		options.push({
+			label: student.deleted_at ? "Activate" : "Deactivate",
+			icon_name: student.deleted_at
+				? "checkmark-circle-outline"
+				: "close-circle-outline",
+			callback: () => {
+				this.toggleStatus(student, index);
+			},
+		});
+
+		if (student.enrollment_histories_count === 0) {
+			options.push({
+				//push delete student option
+				label: "Delete",
+				icon_name: "trash-outline",
+				callback: () => {
+					this.confirmDelete(student.id, index);
+				},
+			});
+		}
+
 		const menu = await this.popoverController.create({
 			component: RowContextMenuComponent,
 			event: e.originalEvent,
 			componentProps: {
 				subtitle: "Student ID: " + student.student_number,
-				options: [
-					{
-						label: "View Registration",
-						icon_name: "eye-outline",
-						callback: () => {
-							this.viewProfile(student, index);
-						},
-					},
-					{
-						label: student.deleted_at ? "Activate" : "Deactivate",
-						icon_name: student.deleted_at
-							? "checkmark-circle-outline"
-							: "close-circle-outline",
-						callback: () => {
-							this.toggleStatus(student, index);
-						},
-					},
-				],
+				options: options,
 			},
 			backdropDismiss: true,
 			showBackdrop: false,
 		});
 		return await menu.present();
+	}
+
+	async deleteStudent(id: number, row_index: number) {
+		const loading = await this.loadingController.create({
+			spinner: "bubbles",
+			backdropDismiss: false,
+		});
+		await loading.present();
+		const result = await this.apiService
+			.deleteStudent(id, true, false)
+			.catch(async (res: HttpErrorResponse) => {
+				const alert = await this.alertController.create({
+					header: res.error.error ?? "Unable to Delete Student!",
+					message: res.error.message,
+					buttons: ["OK"],
+				});
+				await alert.present();
+				return null;
+			})
+			.finally(async () => {
+				await loading.dismiss();
+			});
+		if (result) {
+			const alert = await this.alertController.create({
+				header: "Student Deleted Successfully!",
+				buttons: ["OK"],
+			});
+			await alert.present();
+			const dtInstance = await this.dataTableElement.dtInstance;
+			const data_index = dtInstance.rows().indexes()[row_index];
+			dtInstance.row(data_index).remove();
+			dtInstance.rows().draw();
+			this.popoverController.dismiss();
+		}
 	}
 
 	async exportAs(button_index: number) {
@@ -405,10 +498,17 @@ export class StudentsPage
 				search,
 				start_date,
 				end_date,
-				"st[]": this.filters.student_types,
+				"st[]":
+					this.filters.student_types.length > 0
+						? this.filters.student_types
+						: [0],
 				student_status: this.filters.student_status,
-				"l[]": this.filters.levels,
-				"p[]": this.filters.programs,
+				"l[]":
+					this.filters.levels.length > 0 ? this.filters.levels : [0],
+				"p[]":
+					this.filters.programs.length > 0
+						? this.filters.programs
+						: [0],
 			})
 			.catch((er) => {
 				return null;
@@ -430,7 +530,7 @@ export class StudentsPage
 		this.table_data_status.limit = 15;
 		this.table_data_status.order = "DESC";
 
-		await this.loadMoreData().then(() => this.checkForScrollbar());
+		await this.loadMoreData(event).then(() => this.checkForScrollbar());
 	}
 
 	/**
@@ -442,8 +542,6 @@ export class StudentsPage
 			.catch((er) => {
 				return [];
 			});
-
-		this.filters.programs = this.programs.map((p) => p.id);
 	}
 
 	/**
@@ -453,7 +551,6 @@ export class StudentsPage
 		this.levels = await this.apiService.getLevels().catch((er) => {
 			return [];
 		});
-		this.filters.levels = this.levels.map((l) => l.id);
 	}
 
 	/**
@@ -465,7 +562,26 @@ export class StudentsPage
 			.catch((er) => {
 				return [];
 			});
-		this.filters.student_types = this.student_types.map((s) => s.id);
+	}
+
+	/**
+	 * Get school setting with all offer subjects
+	 * @param school_setting_id id of school_setting
+	 */
+	private async getSchoolSetting(
+		school_setting_id: number,
+		params: any = null
+	) {
+		params
+			? (params["withTrashed"] = 1)
+			: (params = {
+					withTrashed: 1,
+			  });
+		return this.apiService
+			.getSchoolSetting(school_setting_id, params)
+			.catch((er) => {
+				return null;
+			});
 	}
 
 	async getSchoolSettings(fresh: boolean = false) {
@@ -474,6 +590,14 @@ export class StudentsPage
 			.catch((res) => {
 				return [];
 			});
+	}
+
+	private isCurrentlyOpen(start_date: string, end_date: string): boolean {
+		let now = new Date().getTime();
+		return (
+			now >= new Date(start_date).getTime() &&
+			now <= new Date(end_date).getTime()
+		);
 	}
 
 	async loadTableSettings() {
@@ -557,6 +681,118 @@ export class StudentsPage
 		});
 	}
 
+	async showEnrollmentHistoryForm(
+		student: Student,
+		enrollment: EnrollmentHistory = null,
+		school_setting: SchoolSetting = null,
+		row_index: number
+	) {
+		//!LOGIC FOR NEW ENROLLMENT
+		if (!enrollment) {
+			if (!school_setting) return;
+
+			enrollment = {
+				id: 0,
+				school_setting: school_setting,
+				enrolled_subjects: [],
+				student_id: student.id,
+				school_setting_id: school_setting.id,
+				program: null,
+				program_id: student.program_id,
+				level: null,
+				level_id: student.level_id,
+				student_type: null,
+				student_type_id: student.student_type_id,
+				status: "ENLISTED",
+				created_at: "",
+				created_by: 0,
+				updated_at: "",
+				updated_by: 0,
+				deleted_at: "",
+				deleted_by: 0,
+				reg_form_generated: 0,
+			};
+		}
+
+		let event_emitter = new EventEmitter();
+		event_emitter.subscribe(
+			async (res: { new_student: Student; row_index: number }) =>
+				this.updateTableRow(res)
+		);
+
+		let offered_subjects: CourseSubject[] = [];
+		if (
+			this.isCurrentlyOpen(
+				enrollment.school_setting.enrollment_start_date,
+				enrollment.school_setting.enrollment_end_date
+			)
+		) {
+			let settings_with_subjects = await this.getSchoolSetting(
+				enrollment.school_setting.id,
+				{
+					student_id: enrollment.student_id,
+					program_id: enrollment.program_id,
+				}
+			);
+			offered_subjects = settings_with_subjects
+				? settings_with_subjects.subjects
+				: [];
+		}
+
+		//create modal
+		const modal = await this.modalController.create({
+			component: EnrollmentFormComponent,
+			componentProps: {
+				enrollment: enrollment,
+				student: student,
+				offered_subjects: offered_subjects,
+				row_index: row_index,
+				student_types: this.student_types,
+				levels: this.levels,
+				programs: this.programs,
+				success_enrollment: event_emitter,
+			},
+			cssClass: "modal-fullscreen",
+			backdropDismiss: false,
+		});
+		return await modal.present();
+	}
+
+	async showEnrollmentHistories(
+		e: any = null,
+		student: Student,
+		row_index: number
+	) {
+		let options = [];
+		for (const history of student.enrollment_histories) {
+			options.push({
+				label: `A.Y. : ${history.school_setting.academic_year} TERM: ${history.school_setting.term.code}`,
+				icon_name: "open-outline",
+				callback: () => {
+					this.showEnrollmentHistoryForm(
+						student,
+						history,
+						null,
+						row_index
+					).finally(() => this.popoverController.dismiss());
+				},
+			});
+		}
+
+		const menu = await this.popoverController.create({
+			component: RowContextMenuComponent,
+			event: e,
+			componentProps: {
+				title: "View Enrollment",
+				subtitle: "Student ID: " + student.student_number,
+				options: options,
+			},
+			backdropDismiss: true,
+			showBackdrop: false,
+		});
+		return await menu.present();
+	}
+
 	async showExportMenu(event: Event) {
 		if (!this.dataTableElement) return;
 
@@ -582,45 +818,73 @@ export class StudentsPage
 		);
 	}
 
+	async showOpenEnrollments(
+		e: any = null,
+		student: Student,
+		row_index: number
+	) {
+		let open_enrollments = this.school_settings.filter((s) => {
+			return (
+				this.isCurrentlyOpen(
+					s.enrollment_start_date,
+					s.enrollment_end_date
+				) &&
+				(student.enrollment_histories_count === 0 ||
+					!student.enrollment_histories
+						.map((s) => s.school_setting_id)
+						.includes(s.id)) &&
+				(student.registration.school_setting.academic_year >
+					s.academic_year ||
+					(student.registration.school_setting.academic_year ==
+						s.academic_year &&
+						student.registration.school_setting.term_id >=
+							s.term_id))
+			);
+		});
+
+		let options = [];
+		let title = "Enroll Student";
+		if (open_enrollments.length === 0) {
+			title = "No Open Enrollments!";
+		} else {
+			for (const school_setting of open_enrollments) {
+				options.push({
+					label: `A.Y. : ${school_setting.academic_year} TERM: ${school_setting.term.code}`,
+					icon_name: "open-outline",
+					callback: () => {
+						this.showEnrollmentHistoryForm(
+							student,
+							null,
+							school_setting,
+							row_index
+						).finally(() => this.popoverController.dismiss());
+					},
+				});
+			}
+		}
+
+		const menu = await this.popoverController.create({
+			component: RowContextMenuComponent,
+			event: e,
+			componentProps: {
+				title: title,
+				subtitle: "Student ID: " + student.student_number,
+				options: options,
+			},
+			backdropDismiss: true,
+			showBackdrop: false,
+		});
+		return await menu.present();
+	}
+
 	private async showRegistrationForm(
 		student: Student = null,
 		row_index: number
 	) {
 		let event_emitter = new EventEmitter();
 		event_emitter.subscribe(
-			async (res: { new_student: Student; row_index: number }) => {
-				if (!res.new_student) return;
-				if (
-					res.row_index > -1 &&
-					this.filters.levels.includes(res.new_student.level_id) &&
-					this.filters.programs.includes(
-						res.new_student.program_id
-					) &&
-					this.filters.student_types.includes(
-						res.new_student.student_type_id
-					) &&
-					(res.new_student.registration.last_name.indexOf(
-						this.table_data_status.search
-					) > -1 ||
-						res.new_student.registration.first_name.indexOf(
-							this.table_data_status.search
-						) > -1)
-				) {
-					//update row data and redraw
-					const dtInstance = await this.dataTableElement.dtInstance;
-					const data_index = dtInstance.rows().indexes()[
-						res.row_index
-					];
-					dtInstance.row(data_index).data(res.new_student);
-					dtInstance.row(data_index).invalidate("data").draw();
-					this.popoverController.dismiss();
-				} else {
-					//add new row and redraw
-					const dtInstance = await this.dataTableElement.dtInstance;
-					dtInstance.row.add(res.new_student);
-					dtInstance.rows().draw();
-				}
-			}
+			async (res: { new_student: Student; row_index: number }) =>
+				this.updateTableRow(res)
 		);
 
 		//create modal
@@ -629,12 +893,11 @@ export class StudentsPage
 			componentProps: {
 				active_enrollments: student
 					? this.school_settings
-					: this.school_settings.filter(
-							(value) =>
-								new Date() >=
-									new Date(value.enrollment_start_date) &&
-								new Date() <=
-									new Date(value.enrollment_end_date)
+					: this.school_settings.filter((value) =>
+							this.isCurrentlyOpen(
+								value.enrollment_start_date,
+								value.enrollment_end_date
+							)
 					  ),
 				levels: this.levels,
 				programs: student
@@ -701,6 +964,45 @@ export class StudentsPage
 				dtInstance.rows().draw();
 			}
 			this.popoverController.dismiss();
+		}
+	}
+
+	private async updateTableRow(res: {
+		new_student: Student;
+		row_index: number;
+	}) {
+		{
+			if (!res.new_student) return;
+			if (
+				res.row_index > -1 &&
+				this.filters.levels.includes(res.new_student.level_id) &&
+				this.filters.programs.includes(res.new_student.program_id) &&
+				this.filters.student_types.includes(
+					res.new_student.student_type_id
+				) &&
+				(this.table_data_status.search == "" ||
+					res.new_student.registration.last_name
+						.toLowerCase()
+						.indexOf(this.table_data_status.search.toLowerCase()) >
+						-1 ||
+					res.new_student.registration.first_name
+						.toLowerCase()
+						.indexOf(this.table_data_status.search.toLowerCase()) >
+						-1)
+			) {
+				//update row data and redraw
+				console.log("🚀 ~ file: students.page.ts ~ line 994 ~ redraw");
+				const dtInstance = await this.dataTableElement.dtInstance;
+				const data_index = dtInstance.rows().indexes()[res.row_index];
+				dtInstance.row(data_index).data(res.new_student);
+				dtInstance.row(data_index).invalidate("data").draw();
+				this.popoverController.dismiss();
+			} else {
+				//add new row and redraw
+				const dtInstance = await this.dataTableElement.dtInstance;
+				dtInstance.row.add(res.new_student);
+				dtInstance.rows().draw();
+			}
 		}
 	}
 

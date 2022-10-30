@@ -16,6 +16,10 @@ import { TableExportComponent } from "./components/table-export/table-export.com
 import { DataTablesModule } from "angular-datatables";
 import { ProgramsFormComponent } from "./components/programs-form/programs-form.component";
 import { SubjectsFormComponent } from "./components/subjects-form/subjects-form.component";
+import { CreditedSubjectsFormComponent } from "./components/credited-subjects-form/credited-subjects-form.component";
+import { SearchableSelectComponent } from "./components/searchable-select/searchable-select.component";
+import { EnrollmentFormComponent } from "./components/enrollment-form/enrollment-form.component";
+import { EnrollmentHistoryComponent } from "./components/enrollment-history/enrollment-history.component";
 
 @NgModule({
 	declarations: [
@@ -31,6 +35,10 @@ import { SubjectsFormComponent } from "./components/subjects-form/subjects-form.
 		TableExportComponent,
 		ProgramsFormComponent,
 		SubjectsFormComponent,
+		CreditedSubjectsFormComponent,
+		SearchableSelectComponent,
+		EnrollmentFormComponent,
+		EnrollmentHistoryComponent,
 	],
 	imports: [
 		CommonModule,
@@ -49,6 +57,10 @@ import { SubjectsFormComponent } from "./components/subjects-form/subjects-form.
 		TableExportComponent,
 		ProgramsFormComponent,
 		SubjectsFormComponent,
+		CreditedSubjectsFormComponent,
+		SearchableSelectComponent,
+		EnrollmentFormComponent,
+		EnrollmentHistoryComponent,
 	],
 })
 export class SharedModule {}

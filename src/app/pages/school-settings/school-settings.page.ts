@@ -1,4 +1,5 @@
 import { formatDate } from "@angular/common";
+import { HttpErrorResponse } from "@angular/common/http";
 import { Component, EventEmitter, OnInit, ViewChild } from "@angular/core";
 import {
 	AlertController,
@@ -8,8 +9,11 @@ import {
 	LoadingController,
 	ModalController,
 	PopoverController,
+	ViewWillEnter,
+	ViewWillLeave,
 } from "@ionic/angular";
 import { DataTableDirective } from "angular-datatables";
+import { CourseSubject } from "src/app/interfaces/course-subject";
 import { SchoolSetting } from "src/app/interfaces/school-setting";
 import { TablePage } from "src/app/interfaces/table-page";
 import { Term } from "src/app/interfaces/term";
@@ -26,7 +30,9 @@ import {
 	templateUrl: "./school-settings.page.html",
 	styleUrls: ["./school-settings.page.scss"],
 })
-export class SchoolSettingsPage implements OnInit, TablePage {
+export class SchoolSettingsPage
+	implements OnInit, ViewWillEnter, ViewWillLeave, TablePage
+{
 	buttons: {
 		label: string;
 		callback: () => any;
@@ -56,6 +62,7 @@ export class SchoolSettingsPage implements OnInit, TablePage {
 	hasScrollbar = false;
 	isSearching: boolean = false;
 	school_settings: SchoolSetting[] = [];
+	subjects: CourseSubject[] = [];
 	private table_columns: any[] = [];
 	private table_data_status = {
 		current_page: 0,
@@ -89,28 +96,28 @@ export class SchoolSettingsPage implements OnInit, TablePage {
 				title: "Enrollment Start",
 				data: "enrollment_start_date",
 				render: (data, type, row) => {
-					return formatDate(data, "fullDate", "en-US");
+					return formatDate(data, "short", "en-US", "UTC");
 				},
 			},
 			{
 				title: "Enrollment End",
 				data: "enrollment_end_date",
 				render: (data, type, row) => {
-					return formatDate(data, "fullDate", "en-US");
+					return formatDate(data, "short", "en-US", "UTC");
 				},
 			},
 			{
 				title: "Encoding Start",
 				data: "encoding_start_date",
 				render: (data, type, row) => {
-					return formatDate(data, "fullDate", "en-US");
+					return formatDate(data, "short", "en-US", "UTC");
 				},
 			},
 			{
 				title: "Encoding End",
 				data: "encoding_end_date",
 				render: (data, type, row) => {
-					return formatDate(data, "fullDate", "en-US");
+					return formatDate(data, "short", "en-US", "UTC");
 				},
 			},
 		],
@@ -280,12 +287,19 @@ export class SchoolSettingsPage implements OnInit, TablePage {
 		private alertController: AlertController
 	) {}
 
+	async ionViewWillEnter(): Promise<void> {
+		if (this.subjects.length === 0) this.getSubjects();
+	}
+
 	async ionViewWillLeave(): Promise<void> {
+		this.subjects = [];
 		// await this.saveTableSettings();
 	}
 
 	async ngOnInit() {
-		await this.loadMoreData().then(() => this.checkForScrollbar());
+		this.getSubjects().finally(async () => {
+			await this.loadMoreData().then(() => this.checkForScrollbar());
+		});
 		// await this.loadTableSettings();
 	}
 
@@ -318,39 +332,97 @@ export class SchoolSettingsPage implements OnInit, TablePage {
 		return;
 	}
 
+	async confirmDelete(id: number, row_index: number) {
+		const confirm_alert = await this.alertController.create({
+			header: "Confirm Delete",
+			subHeader: "Are you sure to permanently delete school setting?",
+			buttons: [
+				"Cancel",
+				{
+					text: "Delete",
+					handler: (v) => this.deleteSetting(id, row_index),
+				},
+			],
+		});
+		await confirm_alert.present();
+	}
+
 	private async createContextMenu(
 		e: any,
 		school_setting: SchoolSetting,
 		index: number
 	) {
+		let options = [
+			{
+				label: "View",
+				icon_name: "eye-outline",
+				callback: () => {
+					this.viewSetting(school_setting, index);
+				},
+			},
+		];
+
+		if (
+			school_setting.student_registrations_count === 0 &&
+			school_setting.students_count === 0 &&
+			school_setting.enrollment_histories_count === 0
+		) {
+			options.push({
+				label: "Delete",
+				icon_name: "trash-outline",
+				callback: () => {
+					this.confirmDelete(school_setting.id, index);
+				},
+			});
+		}
+
 		const menu = await this.popoverController.create({
 			component: RowContextMenuComponent,
 			event: e.originalEvent,
 			componentProps: {
 				subtitle: `AY: ${school_setting.academic_year} TERM: ${school_setting.term.code}`,
-				options: [
-					{
-						label: "View",
-						icon_name: "eye-outline",
-						callback: () => {
-							this.viewSetting(school_setting, index);
-						},
-					},
-					// {
-					// 	label: student.deleted_at ? "Activate" : "Deactivate",
-					// 	icon_name: student.deleted_at
-					// 		? "checkmark-circle-outline"
-					// 		: "close-circle-outline",
-					// 	callback: () => {
-					// 		this.toggleStatus(student, index);
-					// 	},
-					// },
-				],
+				options: options,
 			},
 			backdropDismiss: true,
 			showBackdrop: false,
 		});
 		return await menu.present();
+	}
+
+	async deleteSetting(id: number, row_index: number) {
+		const loading = await this.loadingController.create({
+			spinner: "bubbles",
+			backdropDismiss: false,
+		});
+		await loading.present();
+		const result = await this.apiService
+			.deleteSchoolSetting(id)
+			.catch(async (res: HttpErrorResponse) => {
+				const alert = await this.alertController.create({
+					header:
+						res.error.error ?? "Unable to Delete School Setting!",
+					message: res.error.message,
+					buttons: ["OK"],
+				});
+				await alert.present();
+				return null;
+			})
+			.finally(async () => {
+				await loading.dismiss();
+			});
+
+		if (result) {
+			const alert = await this.alertController.create({
+				header: "School Setting Deleted Successfully!",
+				buttons: ["OK"],
+			});
+			await alert.present();
+			const dtInstance = await this.dataTableElement.dtInstance;
+			const data_index = dtInstance.rows().indexes()[row_index];
+			dtInstance.row(data_index).remove();
+			dtInstance.rows().draw();
+			this.popoverController.dismiss();
+		}
 	}
 
 	async exportAs(button_index: number) {
@@ -378,6 +450,17 @@ export class SchoolSettingsPage implements OnInit, TablePage {
 				return null;
 			});
 		if (settings) this.addNewRows(settings);
+	}
+
+	/**
+	 * Get all subjects
+	 */
+	async getSubjects() {
+		this.subjects = await this.apiService
+			.getSubjects(true, { withTrashed: 0 })
+			.catch((er) => {
+				return [];
+			});
 	}
 
 	async filterSettings(event: any = null) {
@@ -489,18 +572,56 @@ export class SchoolSettingsPage implements OnInit, TablePage {
 		event_emitter.subscribe(
 			async (res: { new_setting: SchoolSetting; row_index: number }) => {
 				if (!res.new_setting) return;
+				const dtInstance = await this.dataTableElement.dtInstance;
 				if (res.row_index > -1) {
-					//update row data and redraw
-					const dtInstance = await this.dataTableElement.dtInstance;
 					const data_index = dtInstance.rows().indexes()[
 						res.row_index
 					];
-					dtInstance.row(data_index).data(res.new_setting);
-					dtInstance.row(data_index).invalidate("data").draw();
+
+					const enrollment_start = new Date(
+						new Date(
+							res.new_setting.enrollment_start_date
+						).toLocaleString("en-US", { timeZone: "UTC" })
+					);
+					const enrollment_end = new Date(
+						new Date(
+							res.new_setting.enrollment_end_date
+						).toLocaleString("en-US", { timeZone: "UTC" })
+					);
+					const encoding_start = new Date(
+						new Date(
+							res.new_setting.encoding_start_date
+						).toLocaleString("en-US", { timeZone: "UTC" })
+					);
+					const encoding_end = new Date(
+						new Date(
+							res.new_setting.encoding_end_date
+						).toLocaleString("en-US", { timeZone: "UTC" })
+					);
+					const now = new Date();
+
+					//update row data and redraw
+					if (
+						(this.filters.settings_status == "ALL" ||
+							(this.filters.settings_status == "OPEN_ENROLL" &&
+								enrollment_start <= now &&
+								enrollment_end >= now) ||
+							(this.filters.settings_status == "OPEN_ENCODE" &&
+								encoding_start <= now &&
+								encoding_end >= now)) &&
+						(this.table_data_status.search == "" ||
+							res.new_setting.academic_year.indexOf(
+								this.table_data_status.search
+							) > -1)
+					) {
+						dtInstance.row(data_index).data(res.new_setting);
+						dtInstance.row(data_index).invalidate("data").draw();
+					} else {
+						dtInstance.row(data_index).remove();
+						dtInstance.rows().draw();
+					}
 					this.popoverController.dismiss();
 				} else {
-					//add new row and redraw
-					const dtInstance = await this.dataTableElement.dtInstance;
 					dtInstance.row.add(res.new_setting);
 					dtInstance.rows().draw();
 				}
@@ -514,9 +635,10 @@ export class SchoolSettingsPage implements OnInit, TablePage {
 				terms: this.terms,
 				school_setting: setting,
 				row_index: row_index,
+				subjects: this.subjects,
 				success_setting: event_emitter,
 			},
-			cssClass: "modal-max-width",
+			cssClass: "modal-fullscreen",
 			backdropDismiss: false,
 		});
 		return await modal.present();

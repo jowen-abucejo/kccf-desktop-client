@@ -11,6 +11,7 @@ import { SlideTriggerOptions } from "../student-registration-form.component";
 export class EducationBackgroundPageComponent implements OnInit {
 	@Input() educationFormGroup: FormGroup;
 	@Input() selected_program: Course;
+	@Input() hide_college_background: boolean = true;
 	@Output() triggerSlide: EventEmitter<SlideTriggerOptions> =
 		new EventEmitter<SlideTriggerOptions>();
 

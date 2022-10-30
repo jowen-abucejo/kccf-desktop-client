@@ -1,0 +1,58 @@
+<ion-input type="text" readonly [value]="selectedTexts()" placeholder="**Select**" [disabled]="formControlRef.disabled">
+</ion-input>
+<ion-icon slot="end" name="caret-down" class="custom-select-arrow-color"></ion-icon>
+<ion-modal trigger="open-modal" [isOpen]="isOpen" class="custom-select-alert" [backdropDismiss]="backdropDismiss">
+    <ng-template>
+        <ion-header>
+            <ion-toolbar color="primary">
+                <ion-title>{{ title }}</ion-title>
+            </ion-toolbar>
+        </ion-header>
+        <ion-header>
+            <ion-toolbar>
+                <ion-buttons slot="start" style="width: 100%;" class="ion-padding-horizontal">
+                    <ion-searchbar [placeholder]="search_placeholder" (ionChange)="onSearchChange($event)"
+                        [debounce]="250"></ion-searchbar>
+                </ion-buttons>
+            </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+            <ng-container *ngIf="multipleSelectItem">
+                <ion-item *ngFor="let item of items">
+                    <ion-checkbox [value]="leaf(valueRef, item)" [checked]="isSelected(item)"
+                        [disabled]="disableSelectedItems && isSelected(item)" (ionChange)="updateSelected($event)"
+                        class="ion-margin-end">
+                    </ion-checkbox>
+                    <ion-label class="ion-text-wrap">{{ displayText(item) }}</ion-label>
+                </ion-item>
+            </ng-container>
+            <ng-container *ngIf="!multipleSelectItem">
+                <ion-list>
+                    <ion-radio-group name="selectOne" [(ngModel)]="selected_items">
+                        <ion-item *ngFor="let item of items" lines="full">
+                            <ion-radio [value]="leaf(valueRef, item)"
+                                [disabled]="disableSelectedItems && isSelected(item)" slot="start"></ion-radio>
+                            <ion-label class="ion-text-wrap">{{ displayText(item) }}</ion-label>
+                        </ion-item>
+                    </ion-radio-group>
+                </ion-list>
+            </ng-container>
+        </ion-content>
+        <ion-footer color="light">
+            <ion-toolbar>
+                <ion-buttons slot="end">
+                    <ion-button (click)="cancel()" [strong]="true">
+                        <ion-text color="primary">
+                            <h5>Cancel</h5>
+                        </ion-text>
+                    </ion-button>
+                    <ion-button (click)="confirm()" [strong]="true" class="ion-margin-horizontal">
+                        <ion-text color="primary">
+                            <h5>OK</h5>
+                        </ion-text>
+                    </ion-button>
+                </ion-buttons>
+            </ion-toolbar>
+        </ion-footer>
+    </ng-template>
+</ion-modal>

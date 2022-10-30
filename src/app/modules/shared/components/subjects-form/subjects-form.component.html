@@ -1,6 +1,6 @@
 <ion-header>
     <ion-toolbar color="primary">
-        <ion-title>{{ school_setting? 'UPDATE' : 'NEW' }} SUBJECT</ion-title>
+        <ion-title>{{ course_subject? 'UPDATE' : 'NEW' }} SUBJECT</ion-title>
         <ion-buttons slot="end" class="ion-margin-end">
             <ion-button (click)="closeSubjectsModal()" fill="solid" color="danger">
                 <span title="CANCEL">
@@ -23,11 +23,11 @@
                             </ion-item-divider>
 
                             <ion-item>
-                                <ion-label position="floating">Curriculum Code</ion-label>
+                                <ion-label position="floating">Subject Code</ion-label>
                                 <ion-input formControlName="code"></ion-input>
                             </ion-item>
                             <ion-item>
-                                <ion-label position="floating">Curriculum Description</ion-label>
+                                <ion-label position="floating">Subject Description</ion-label>
                                 <ion-input formControlName="description"></ion-input>
                             </ion-item>
                             <ion-item>
@@ -38,9 +38,25 @@
                                 <ion-label position="floating">Laboratory Units</ion-label>
                                 <ion-input formControlName="lab_units" type="number" min="0" step="1"></ion-input>
                             </ion-item>
+                            <ion-item (click)="pre_select.open()" lines="full" button>
+                                <ion-label position="floating">Select Prerequisite Subjects</ion-label>
+                                <app-searchable-select [items]="not_in_equivalent"
+                                    [formControlRef]="course_subject_form.controls['prerequisite_subjects']"
+                                    valueRef="id" textFieldRef="code,description" [multipleTextDisplay]="true"
+                                    [multipleSelectItem]="true" [title]="customAlertOptions2.header" #pre_select>
+                                </app-searchable-select>
+                            </ion-item>
+                            <ion-item (click)="eq_select.open()" lines="full" button>
+                                <ion-label position="floating">Select Equivalent Subjects</ion-label>
+                                <app-searchable-select [items]="not_in_pre_req"
+                                    [formControlRef]="course_subject_form.controls['equivalent_subjects']" valueRef="id"
+                                    textFieldRef="code,description" [multipleTextDisplay]="true"
+                                    [multipleSelectItem]="true" [title]="customAlertOptions.header" #eq_select>
+                                </app-searchable-select>
+                            </ion-item>
 
                             <ion-button type="submit" expand="block" class="ion-margin-vertical"
-                                [disabled]="!course_subject_form.valid">
+                                [disabled]="!course_subject_form.valid || course_subject_form.pristine">
                                 {{ course_subject? 'UPDATE' : 'CREATE' }} SUBJECT
                             </ion-button>
                         </ion-item-group>

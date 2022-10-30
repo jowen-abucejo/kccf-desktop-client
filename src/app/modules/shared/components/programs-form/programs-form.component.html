@@ -33,8 +33,8 @@
                                     </ion-item>
                                     <ion-item>
                                         <ion-label position="floating">Education Level</ion-label>
-                                        <ion-select interface="popover" placeholder="**Select**"
-                                            formControlName="program_level_id">
+                                        <ion-select *ngIf="program_levels.length > 0" interface="popover"
+                                            placeholder="**Select**" formControlName="program_level_id">
                                             <ion-select-option *ngFor="let p of program_levels" [value]="p.id">
                                                 {{ p.description }}
                                             </ion-select-option>
@@ -95,22 +95,23 @@
                                                     <ion-label position="floating">Level</ion-label>
                                                     <ion-select interface="popover" placeholder="**Select**"
                                                         formControlName="current_level">
+                                                        <ion-select-option value=""></ion-select-option>
                                                         <ion-select-option *ngFor="let l of levels_selection"
                                                             [value]="l.id">
                                                             {{ l.description }}
                                                         </ion-select-option>
                                                     </ion-select>
                                                 </ion-item>
-                                                <ion-item>
-                                                    <ion-label position="floating">Subjects</ion-label>
-                                                    <ion-select [interfaceOptions]="customAlertOptions"
-                                                        interface="alert" placeholder="**Select**" multiple="true"
-                                                        formControlName="subjects">
-                                                        <ion-select-option *ngFor="let s of subjects" [value]="s.id"
-                                                            [disabled]="subjectExist(s.id)">
-                                                            {{ s.code }}: ({{ s.description }})
-                                                        </ion-select-option>
-                                                    </ion-select>
+                                                <ion-item (click)="sub_select.open()" lines="full" button>
+                                                    <ion-label position="floating">Select Subjects
+                                                    </ion-label>
+                                                    <app-searchable-select [items]="subjects"
+                                                        [formControlRef]="selectSubjectsForm.controls['subjects']"
+                                                        valueRef="id" textFieldRef="code,description"
+                                                        [multipleTextDisplay]="true" [multipleSelectItem]="true"
+                                                        [title]="customAlertOptions.header + ' ' + customAlertOptions.subHeader"
+                                                        [disableSelectedItems]="true" #sub_select>
+                                                    </app-searchable-select>
                                                 </ion-item>
                                             </ion-item-group>
                                         </ion-list>

@@ -101,9 +101,35 @@ export class SubjectsPage
 		columns: [
 			{ title: "ID", data: "id" },
 			{ title: "Code", data: "code" },
-			{ title: "Description", data: "description" },
+			{ title: "Description", data: "description", width: "35%" },
 			{ title: "Lec Units", data: "lec_units" },
 			{ title: "Lab Units", data: "lab_units" },
+			{
+				title: "Prerequisite Subjects",
+				data: "pre_requisite_subjects",
+				width: "25%",
+				className: "desktop",
+				render: (data: CourseSubject[], type, row) => {
+					return data
+						.map((cs) => {
+							return `${cs.code}:${cs.description}`;
+						})
+						.join(", ");
+				},
+			},
+			{
+				title: "Equivalent Subjects",
+				data: "equivalent_previous_subjects",
+				width: "25%",
+				className: "desktop",
+				render: (data: CourseSubject[], type, row) => {
+					return data
+						.map((cs) => {
+							return `${cs.code}:${cs.description}`;
+						})
+						.join(", ");
+				},
+			},
 			{
 				title: "Status",
 				data: null,
@@ -281,7 +307,11 @@ export class SubjectsPage
 	) {}
 
 	async ionViewWillEnter(): Promise<void> {
-		this.getPrograms(true);
+		if (this.programs.length === 0)
+			this.getPrograms(true).finally(() => {
+				this.filters.programs = this.programs.map((p) => p.id);
+				this.filters.programs.push(0);
+			});
 	}
 
 	async ionViewWillLeave(): Promise<void> {
@@ -291,6 +321,10 @@ export class SubjectsPage
 
 	async ngOnInit() {
 		// await this.loadTableSettings();
+		await this.getPrograms(true).finally(() => {
+			this.filters.programs = this.programs.map((p) => p.id);
+			this.filters.programs.push(0);
+		});
 		this.loadMoreData().then(() => this.checkForScrollbar());
 	}
 
@@ -323,39 +357,106 @@ export class SubjectsPage
 		return;
 	}
 
+	async confirmDelete(id: number, row_index: number) {
+		const confirm_alert = await this.alertController.create({
+			header: "Confirm Delete",
+			subHeader: "Are you sure to permanently delete subject?",
+			buttons: [
+				"Cancel",
+				{
+					text: "Delete",
+					handler: (v) => this.deleteSubject(id, row_index),
+				},
+			],
+		});
+		await confirm_alert.present();
+	}
+
 	private async createContextMenu(
 		e: any,
 		subject: CourseSubject,
 		index: number
 	) {
+		let options = [
+			{
+				label: "View Subject",
+				icon_name: "eye-outline",
+				callback: () => {
+					this.viewSubject(subject, index);
+				},
+			},
+			{
+				label: subject.deleted_at ? "Activate" : "Deactivate",
+				icon_name: subject.deleted_at
+					? "checkmark-circle-outline"
+					: "close-circle-outline",
+				callback: () => {
+					this.toggleStatus(subject, index);
+				},
+			},
+		];
+
+		if (
+			subject.programs_count === 0 &&
+			subject.equivalent_previous_subjects.length === 0 &&
+			subject.equivalent_newer_subjects.length === 0 &&
+			subject.school_settings_count === 0 &&
+			subject.pre_requisite_for_subjects_count === 0
+		) {
+			options.push({
+				label: "Delete",
+				icon_name: "trash-outline",
+				callback: () => {
+					this.confirmDelete(subject.id, index);
+				},
+			});
+		}
+
 		const menu = await this.popoverController.create({
 			component: RowContextMenuComponent,
 			event: e.originalEvent,
 			componentProps: {
 				subtitle: "Subject Code: " + subject.code,
-				options: [
-					{
-						label: "View Subject",
-						icon_name: "eye-outline",
-						callback: () => {
-							this.viewSubject(subject, index);
-						},
-					},
-					{
-						label: subject.deleted_at ? "Activate" : "Deactivate",
-						icon_name: subject.deleted_at
-							? "checkmark-circle-outline"
-							: "close-circle-outline",
-						callback: () => {
-							this.toggleStatus(subject, index);
-						},
-					},
-				],
+				options: options,
 			},
 			backdropDismiss: true,
 			showBackdrop: false,
 		});
 		return await menu.present();
+	}
+
+	async deleteSubject(id: number, row_index: number) {
+		const loading = await this.loadingController.create({
+			spinner: "bubbles",
+			backdropDismiss: false,
+		});
+		await loading.present();
+		const result = await this.apiService
+			.deleteSubject(id, true, false)
+			.catch(async (res: HttpErrorResponse) => {
+				const alert = await this.alertController.create({
+					header: res.error.error ?? "Unable to Delete Subject!",
+					message: res.error.message,
+					buttons: ["OK"],
+				});
+				await alert.present();
+				return null;
+			})
+			.finally(async () => {
+				await loading.dismiss();
+			});
+		if (result) {
+			const alert = await this.alertController.create({
+				header: "Subject Deleted Successfully!",
+				buttons: ["OK"],
+			});
+			await alert.present();
+			const dtInstance = await this.dataTableElement.dtInstance;
+			const data_index = dtInstance.rows().indexes()[row_index];
+			dtInstance.row(data_index).remove();
+			dtInstance.rows().draw();
+			this.popoverController.dismiss();
+		}
 	}
 
 	async exportAs(button_index: number) {
@@ -410,7 +511,7 @@ export class SubjectsPage
 		this.table_data_status.last_page = 2;
 		this.table_data_status.limit = 15;
 		this.table_data_status.order = "DESC";
-		await this.loadMoreData().then(() => this.checkForScrollbar());
+		await this.loadMoreData(event).then(() => this.checkForScrollbar());
 	}
 
 	async loadTableSettings() {
@@ -508,10 +609,26 @@ export class SubjectsPage
 		// event.stopPropagation;
 		this.fab.activated = false;
 
+		let program_filter = [...this.programs];
+		program_filter.unshift({
+			code: "*not assigned*",
+			comments: null,
+			created_at: "",
+			created_by: null,
+			deleted_at: null,
+			deleted_by: null,
+			description: "*not assigned*",
+			id: 0,
+			program_level_id: 0,
+			program_level: null,
+			updated_at: "",
+			updated_by: 0,
+		});
+
 		this.categories.push({
 			name: "Programs",
 			filter_key: "programs",
-			items: this.programs,
+			items: program_filter,
 		});
 	}
 
@@ -526,12 +643,17 @@ export class SubjectsPage
 				if (!res.new_subject) return;
 				if (
 					res.row_index > -1 &&
-					(res.new_subject.code.indexOf(
-						this.table_data_status.search
-					) > -1 ||
-						res.new_subject.description.indexOf(
-							this.table_data_status.search
-						) > -1)
+					(this.table_data_status.search == "" ||
+						res.new_subject.code
+							.toLowerCase()
+							.indexOf(
+								this.table_data_status.search.toLowerCase()
+							) > -1 ||
+						res.new_subject.description
+							.toLowerCase()
+							.indexOf(
+								this.table_data_status.search.toLowerCase()
+							) > -1)
 				) {
 					//update row data and redraw
 					const data_index = dtInstance.rows().indexes()[

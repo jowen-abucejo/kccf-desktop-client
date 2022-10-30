@@ -8,6 +8,7 @@ import { AuthenticationService } from "./authentication.service";
 import { StorageService } from "./storage.service";
 
 export const API_ENDPOINTS = {
+	ENROLLMENT_HISTORIES: "enrollment-histories",
 	LEVELS: "levels",
 	PROGRAMS: "programs",
 	PROGRAM_LEVELS: "program-levels",
@@ -57,6 +58,20 @@ export class ApiService {
 
 	private createUrlPrefix(): string {
 		return `${this.api_config.domain}/api/${this.api_config.version}`;
+	}
+
+	createEnrollmentHistory(data: any) {
+		const url = `${this.createUrlPrefix()}/${
+			API_ENDPOINTS.ENROLLMENT_HISTORIES
+		}`;
+
+		return this.http
+			.post(
+				url,
+				{ new_enrollment: data },
+				{ headers: this.auth.createHeader() }
+			)
+			.toPromise();
 	}
 
 	createProgram(data: any) {
@@ -113,6 +128,19 @@ export class ApiService {
 			.toPromise();
 	}
 
+	deleteSchoolSetting(id: number) {
+		return this.http
+			.delete(
+				`${this.createUrlPrefix()}/${
+					API_ENDPOINTS.SCHOOL_SETTINGS
+				}/${id}`,
+				{
+					headers: this.auth.createHeader(),
+				}
+			)
+			.toPromise();
+	}
+
 	deleteSubject(
 		id: number,
 		forceDelete: boolean = false,
@@ -145,9 +173,65 @@ export class ApiService {
 			.toPromise();
 	}
 
+	getEnrollmentHistory(id: number, params: any = null) {
+		return this.http
+			.get(
+				`${this.createUrlPrefix()}/${
+					API_ENDPOINTS.ENROLLMENT_HISTORIES
+				}/${id}`,
+				{
+					headers: this.auth.createHeader(),
+					params: params,
+				}
+			)
+			.toPromise();
+	}
+
+	getEnrollmentHistories(params: any) {
+		return this.http
+			.get(
+				`${this.createUrlPrefix()}/${
+					API_ENDPOINTS.ENROLLMENT_HISTORIES
+				}`,
+				{
+					headers: this.auth.createHeader(),
+					params: params,
+				}
+			)
+			.toPromise();
+	}
+
+	getProgramSubjects(program_id: number, params: any = null) {
+		return this.http
+			.get(
+				`${this.createUrlPrefix()}/${
+					API_ENDPOINTS.PROGRAMS
+				}/${program_id}`,
+				{
+					headers: this.auth.createHeader(),
+					params: params,
+				}
+			)
+			.toPromise();
+	}
+
 	getLevels(fresh: boolean = false) {
 		const url = `${this.createUrlPrefix()}/${API_ENDPOINTS.LEVELS}`;
 		return this.cachedOrRequest(url, fresh);
+	}
+
+	getSchoolSetting(school_setting_id: number, params: any = null) {
+		return this.http
+			.get(
+				`${this.createUrlPrefix()}/${
+					API_ENDPOINTS.SCHOOL_SETTINGS
+				}/${school_setting_id}`,
+				{
+					headers: this.auth.createHeader(),
+					params: params,
+				}
+			)
+			.toPromise();
 	}
 
 	getProgramLevels(fresh: boolean = false) {
@@ -166,20 +250,6 @@ export class ApiService {
 				.toPromise();
 		}
 		return this.cachedOrRequest(url, fresh);
-	}
-
-	getProgramSubjects(program_id: number, params: any = null) {
-		return this.http
-			.get(
-				`${this.createUrlPrefix()}/${
-					API_ENDPOINTS.PROGRAMS
-				}/${program_id}`,
-				{
-					headers: this.auth.createHeader(),
-					params: params,
-				}
-			)
-			.toPromise();
 	}
 
 	getSchoolSettings(fresh: boolean = false, params: any = null) {
@@ -236,8 +306,20 @@ export class ApiService {
 			.post(
 				`${this.createUrlPrefix()}/${
 					API_ENDPOINTS.STUDENT_REGISTRATION
-				}/registration`,
+				}`,
 				{ registration: data },
+				{ headers: this.auth.createHeader() }
+			)
+			.toPromise();
+	}
+
+	updateEnrollmentHistory(id: number, data: any) {
+		return this.http
+			.put(
+				`${this.createUrlPrefix()}/${
+					API_ENDPOINTS.ENROLLMENT_HISTORIES
+				}/${id}`,
+				{ new_enrollment: data },
 				{ headers: this.auth.createHeader() }
 			)
 			.toPromise();

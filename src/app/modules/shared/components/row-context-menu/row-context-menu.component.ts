@@ -6,6 +6,7 @@ import { Component, Input, OnInit } from "@angular/core";
 	styleUrls: ["./row-context-menu.component.scss"],
 })
 export class RowContextMenuComponent implements OnInit {
+	@Input() title: string = "Select Action";
 	@Input() subtitle: string;
 	@Input() options: {
 		label: string;

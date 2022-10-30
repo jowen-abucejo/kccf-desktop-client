@@ -12,7 +12,8 @@
 </ion-header>
 <ion-header>
     <ion-toolbar>
-        <ion-segment [(ngModel)]="filters.student_status" style="max-width: 70%" (ionChange)="filterStudents()">
+        <ion-segment [(ngModel)]="filters.student_status" style="max-width: 70%" (ionChange)="filterStudents()"
+            [disabled]="isSearching">
             <ion-segment-button value="ALL" layout="icon-start">
                 <ion-label>ALL STUDENTS</ion-label>
                 <ion-icon name="list-outline"></ion-icon>
@@ -30,7 +31,7 @@
             <ion-button id="open-student-registration" expand="block" color="primary" fill="outline"
                 (click)="showRegistrationForm()" [disabled]="school_settings.length==0">
                 <ion-icon name="create-outline" slot="start"></ion-icon>
-                Register Student
+                Add Student
             </ion-button>
         </ion-buttons>
     </ion-toolbar>

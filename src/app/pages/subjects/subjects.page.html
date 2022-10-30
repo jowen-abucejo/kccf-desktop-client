@@ -11,7 +11,8 @@
 </ion-header>
 <ion-header>
     <ion-toolbar>
-        <ion-segment [(ngModel)]="filters.subject_status" style="max-width: 70%" (ionChange)="filterSubjects()">
+        <ion-segment [(ngModel)]="filters.subject_status" style="max-width: 70%" (ionChange)="filterSubjects()"
+            [disabled]="isSearching">
             <ion-segment-button value="ALL" layout="icon-start">
                 <ion-label>ALL SUBJECTS</ion-label>
                 <ion-icon name="list-outline"></ion-icon>
